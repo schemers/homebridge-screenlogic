@@ -1,0 +1,47 @@
+{
+  "pluginAlias": "ScreenLogic",
+  "pluginType": "platform",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "ip_address": {
+        "title": "IP Address",
+        "type": "string",
+        "placeholder": "n.n.n.n",
+        "required": false,
+        "description": "Optional. Use only if you have static IP address. If unset a UDP broadcast will be used to find the unit."
+      },
+      "port": {
+        "title": "IP Port",
+        "type": "integer",
+        "placeholder": "80",
+        "required": false,
+        "description": "Optional. Default is 80."
+      },
+      "username": {
+        "title": "Username",
+        "type": "string",
+        "placeholder": "Pentair: XX-XX-XX",
+        "required": false,
+        "description": "Optional. Set this to go through remote Pentair servers. Format should be: Pentair: XX-XX-XX"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string",
+        "placeholder": "Password",
+        "options": {
+          "hidden": true
+        },
+        "required": false,
+        "description": "Optional. Only needed if going through Pentair servers."
+      },
+      "hidden_circuits": {
+        "title": "Hidden Circuits",
+        "type": "string",
+        "placeholder": "hidden circuits",
+        "required": false,
+        "description": "Optional. Comma-seperated list of circuit names to hide."
+      }
+    }
+  }
+}
