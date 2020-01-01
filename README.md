@@ -4,6 +4,8 @@ Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) usi
 
 **Note:** this plugin is in very early developement and not ready for prime time yet.
 
+<img src="https://i.imgur.com/JIHqTjS.png" width="400">
+
 # Installation
 
 <!-- 2. Clone (or pull) this repository from github into the same path Homebridge lives (usually `/usr/local/lib/node_modules`). Note: the code currently on GitHub is in beta, and is newer than the latest published version of this package on `npm` -->
