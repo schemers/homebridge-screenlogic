@@ -81,12 +81,12 @@ class ScreenLogicPlatform {
     this.airTempAccessory = new TemperatureAccessory(AIR_TEMP_NAME, this)
     accessories.push(this.airTempAccessory)
 
-    this.switchAccessories = []
+    this.circuitAccessories = []
 
     for (const circuitId in this.system.circuits) {
       const circuit = this.system.circuits[circuitId]
       const switchAccessory = new CircuitAccessory(circuit.name, circuitId, this)
-      this.switchAccessories[circuit.circuitId] = switchAccessory
+      this.circuitAccessories[circuit.circuitId] = switchAccessory
       accessories.push(switchAccessory)
     }
 
@@ -110,7 +110,7 @@ class ScreenLogicPlatform {
     this.spaTempAccessory.statusFault = fault
 
     for (const circuitId in this.system.circuits) {
-      this.switchAccessories[circuitId].stateFault = fault
+      this.circuitAccessories[circuitId].stateFault = fault
     }
 
     if (!err) {
@@ -124,7 +124,7 @@ class ScreenLogicPlatform {
       this.spaTempAccessory.statusActive = this.system.isSpaActive
 
       for (const circuitId in this.system.circuits) {
-        this.switchAccessories[circuitId].on = this.system.circuits[circuitId].state ? true : false
+        this.circuitAccessories[circuitId].on = this.system.circuits[circuitId].state ? true : false
       }
     }
   }

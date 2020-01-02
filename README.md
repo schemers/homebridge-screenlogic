@@ -4,7 +4,7 @@ Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) usi
 
 **Note:** this plugin is in very early developement and not ready for prime time yet.
 
-<img src="https://i.imgur.com/JIHqTjS.png" width="400">
+<img src="https://i.imgur.com/JIHqTjS.png" width="300">
 
 # Installation
 
