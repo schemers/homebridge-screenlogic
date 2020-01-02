@@ -331,6 +331,22 @@ class ScreenLogicPlatform {
     return informationService
   }
 
+  /** convenience function to add an `on('get')` handler which refreshes accessory values  */
+  bindCharacteristicGet(service, characteristic, description) {
+    const platform = this
+    service.getCharacteristic(characteristic).on('get', function(callback) {
+      platform.refreshAccessoryValues(err => {
+        if (!err) {
+          platform.log.debug(description, this.displayName, ':', this.value)
+          callback(null, this.value)
+        } else {
+          platform.log.error('refreshAccessories failed:', err.message)
+          callback(err, null)
+        }
+      })
+    })
+  }
+
   static fahrenheitToCelsius(temperature) {
     return (temperature - 32) / 1.8
   }
