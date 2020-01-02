@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+...
+
+## v0.2.0 - 2020-1-2
+
 ### Added
 
 - add `bindCharacteristicGet` convenience method on platform to easily bind a characteristics `on('get')` function to a function that refreshes values and handles callback properly.
