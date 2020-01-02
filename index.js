@@ -90,7 +90,7 @@ class ScreenLogicPlatform {
       accessories.push(switchAccessory)
     }
 
-    this.log.info('found', this.accessories.length, 'accessories')
+    this.log.info('found', accessories.length, 'accessories')
     return accessories
   }
 

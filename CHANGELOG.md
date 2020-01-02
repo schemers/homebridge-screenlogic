@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v0.1.1 - 2020-1-1
+
+### Fixed
+
+- fixed number of found accessories in log
+
 ## v0.1.0 - 2020-1-1
 
 - expose discovered circuit names as switches
