@@ -41,6 +41,7 @@ class ScreenLogicPlatform {
       spaTemperature: 0,
       poolTemperature: 0,
       softwareVersion: 'unknown',
+      isCelsius: true,
       isPoolActive: false,
       isSpaActive: false,
       controllerId: undefined,
@@ -173,6 +174,7 @@ class ScreenLogicPlatform {
       })
       .on('controllerConfig', function(config) {
         platform.system.controllerId = config.controllerId
+        platform.system.isCelsius = config.degC
         for (const circuit of config.bodyArray) {
           if (platform.hiddenCircuitNames.indexOf(circuit.name) == -1) {
             platform.system.circuits[circuit.circuitId] = {
@@ -188,13 +190,9 @@ class ScreenLogicPlatform {
       })
       .on('poolStatus', function(status) {
         connection.close()
-        platform.system.poolTemperature = ScreenLogicPlatform.fahrenheitToCelsius(
-          status.currentTemp[0]
-        )
-        platform.system.spaTemperature = ScreenLogicPlatform.fahrenheitToCelsius(
-          status.currentTemp[1]
-        )
-        platform.system.airTemperature = ScreenLogicPlatform.fahrenheitToCelsius(status.airTemp)
+        platform.system.poolTemperature = platform.normalizeTemperature(status.currentTemp[0])
+        platform.system.spaTemperature = platform.normalizeTemperature(status.currentTemp[1])
+        platform.system.airTemperature = platform.normalizeTemperature(status.airTemp)
         platform.system.isPoolActive = status.isPoolActive()
         platform.system.isSpaActive = status.isSpaActive()
         // go through and update state
@@ -345,6 +343,13 @@ class ScreenLogicPlatform {
         }
       })
     })
+  }
+
+  /** normalize temperature to celsius for homekit */
+  normalizeTemperature(temperature) {
+    return this.system.isCelsius
+      ? temperature
+      : ScreenLogicPlatform.fahrenheitToCelsius(temperature)
   }
 
   static fahrenheitToCelsius(temperature) {
