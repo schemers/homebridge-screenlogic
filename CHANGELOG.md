@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.0.0 - 2020-1-2
+
+- bump verison to 1.0.0 for easier updates in homebridge
+
 ## v0.2.0 - 2020-1-2
 
 ### Added
