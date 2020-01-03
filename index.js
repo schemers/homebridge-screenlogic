@@ -147,6 +147,7 @@ class ScreenLogicPlatform {
       this._updateAccessories(poolStatus, null)
       return null
     } catch (err) {
+      this.log.error('error getting pool status', err)
       this._updateAccessories(null, err)
       return err
     }
