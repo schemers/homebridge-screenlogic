@@ -67,12 +67,6 @@ class ScreenLogicPlatform {
 
     this.log.info('connected:', this.poolConfig.gatewayName, this.poolConfig.softwareVersion)
 
-    let accessories = this._initializeAccessories(this.poolConfig)
-
-    return accessories
-  }
-
-  _initializeAccessories(poolConfig) {
     var accessories = []
     this.poolTempAccessory = new TemperatureAccessory(POOL_TEMP_NAME, this)
     accessories.push(this.poolTempAccessory)
@@ -85,11 +79,13 @@ class ScreenLogicPlatform {
 
     this.circuitAccessories = []
 
-    for (const circuit of poolConfig.circuits) {
+    for (const circuit of this.poolConfig.circuits) {
       const switchAccessory = new CircuitAccessory(circuit.name, circuit.id, this)
       this.circuitAccessories.push(switchAccessory)
       accessories.push(switchAccessory)
     }
+
+    await this._refreshStatus()
 
     return accessories
   }
@@ -139,7 +135,7 @@ class ScreenLogicPlatform {
         this.pendingRefreshCallbacks = []
       },
       _rejected => {
-        // will never happen
+        // will never happen because _refreshStatus never rejects
       }
     )
   }
