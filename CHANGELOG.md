@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.1.0 - 2020-1-2
+
+### Fixed
+
+- rewrite to use promises/async/await
+
+- move all ScreenLogic-related code to Pool module to keep platform simpler
+
+- simplify logging with top-level exception handlers
+
 ## v1.0.0 - 2020-1-2
 
 - bump verison to 1.0.0 for easier updates in homebridge

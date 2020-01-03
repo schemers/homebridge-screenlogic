@@ -1,6 +1,6 @@
 {
   "name": "homebridge-screenlogic",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Plugin for Pentair Screenlogic Controllers",
   "main": "index.js",
   "scripts": {
@@ -27,6 +27,7 @@
     "homebridge": ">=0.4.0"
   },
   "dependencies": {
+    "bluebird": "^3.7.2",
     "node-screenlogic": "^1.3.1"
   },
   "devDependencies": {

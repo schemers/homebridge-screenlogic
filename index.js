@@ -1,6 +1,6 @@
 'use strict'
 
-const ScreenLogic = require('node-screenlogic')
+const Pool = require('./lib/Pool')
 
 let Accessory, Service, Characteristic, uuid
 let TemperatureAccessory, CircuitAccessory
@@ -32,46 +32,47 @@ class ScreenLogicPlatform {
   constructor(log, config) {
     this.log = log
     this.config = config
-
-    const hiddenCircuits = config.hidden_circuits || ''
-    this.hiddenCircuitNames = hiddenCircuits.split(',').map(item => item.trim())
-
-    this.system = {
-      airTemperature: 0,
-      spaTemperature: 0,
-      poolTemperature: 0,
-      softwareVersion: 'unknown',
-      isCelsius: true,
-      isPoolActive: false,
-      isSpaActive: false,
-      controllerId: undefined,
-      circuits: {
-        // "501": { circuitId: 501, name: 'name', state: 0/1 }
-      }
-    }
-
-    this.gatewayName = undefined
     this.pendingRefreshCallbacks = []
+    this.poolController = new Pool.Controller(config)
   }
 
-  /** Homebridge requirement that will fetch all the accessories */
+  /** Homebridge requirement that will fetch all the discovered accessories */
   accessories(callback) {
     this.log.info('Fetching ScreenLogic Info...')
 
-    this.refreshStatus(true, err => {
-      var foundAccessories = []
-      if (!err) {
-        foundAccessories = this.initializeAccessories()
-        this.updateAccessories(null)
-      } else {
-        this.log.error('error getting accessories:', err.message)
+    this._accessories().then(
+      foundAccessories => {
+        this.log.info('found', foundAccessories.length, 'accessories')
+        callback(foundAccessories)
+      },
+      err => {
+        this.log.error('unable to get pool config:', err)
+        callback([])
       }
-      // this is a homebridge-style callback
-      callback(foundAccessories)
-    })
+    )
   }
 
-  initializeAccessories() {
+  async _accessories() {
+    this.poolConfig = await this.poolController.getPoolConfig()
+
+    // filter out hidden circuits
+    const hiddenCircuits = this.config.hidden_circuits || ''
+    const hiddenCircuitNames = hiddenCircuits.split(',').map(item => item.trim())
+
+    this.poolConfig.circuits = this.poolConfig.circuits.filter(circuit => {
+      return hiddenCircuitNames.indexOf(circuit.name) == -1
+    })
+
+    this.device_id = this.poolConfig.gatewayName.replace('Pentair: ', '')
+
+    this.log.info('connected:', this.poolConfig.gatewayName, this.poolConfig.softwareVersion)
+
+    let accessories = this._initializeAccessories(this.poolConfig)
+
+    return accessories
+  }
+
+  _initializeAccessories(poolConfig) {
     var accessories = []
     this.poolTempAccessory = new TemperatureAccessory(POOL_TEMP_NAME, this)
     accessories.push(this.poolTempAccessory)
@@ -84,236 +85,79 @@ class ScreenLogicPlatform {
 
     this.circuitAccessories = []
 
-    for (const circuitId in this.system.circuits) {
-      const circuit = this.system.circuits[circuitId]
-      const switchAccessory = new CircuitAccessory(circuit.name, circuitId, this)
-      this.circuitAccessories[circuit.circuitId] = switchAccessory
+    for (const circuit of poolConfig.circuits) {
+      const switchAccessory = new CircuitAccessory(circuit.name, circuit.id, this)
+      this.circuitAccessories.push(switchAccessory)
       accessories.push(switchAccessory)
     }
 
-    this.log.info('found', accessories.length, 'accessories')
     return accessories
   }
 
-  /** refresh all our accessory */
-  refreshAccessoryValues(callback) {
-    this.refreshStatus(false, err => {
-      this.updateAccessories(err)
-      callback(err)
-    })
-  }
-
   /** updates all accessory data with latest values after a refresh */
-  updateAccessories(err) {
+  _updateAccessories(status, err) {
     const fault = err ? true : false
     this.airTempAccessory.statusFault = fault
     this.poolTempAccessory.statusFault = fault
     this.spaTempAccessory.statusFault = fault
 
-    for (const circuitId in this.system.circuits) {
-      this.circuitAccessories[circuitId].stateFault = fault
+    for (const circuitAccessory of this.circuitAccessories) {
+      circuitAccessory.stateFault = fault
     }
 
-    if (!err) {
-      this.airTempAccessory.temperature = this.system.airTemperature
+    if (!err && status) {
+      this.airTempAccessory.temperature = this.normalizeTemperature(status.airTemperature)
       this.airTempAccessory.statusActive = true
 
-      this.poolTempAccessory.temperature = this.system.poolTemperature
-      this.poolTempAccessory.statusActive = this.system.isPoolActive
+      this.poolTempAccessory.temperature = this.normalizeTemperature(status.poolTemperature)
+      this.poolTempAccessory.statusActive = status.isPoolActive
 
-      this.spaTempAccessory.temperature = this.system.spaTemperature
-      this.spaTempAccessory.statusActive = this.system.isSpaActive
-
-      for (const circuitId in this.system.circuits) {
-        this.circuitAccessories[circuitId].on = this.system.circuits[circuitId].state ? true : false
+      this.spaTempAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
+      this.spaTempAccessory.statusActive = status.isSpaActive
+      for (const circuitAccessory of this.circuitAccessories) {
+        circuitAccessory.on = status.circuitState[circuitAccessory.circuitId] ? true : false
       }
     }
   }
 
-  refreshStatus(fullConfig, callback) {
-    this.getConnection((err, connection) => {
-      if (err) {
-        callback(err)
-        return
-      }
+  // refresh all accessories
+  refreshAccessoryValues(callback) {
+    this.pendingRefreshCallbacks.push(callback)
 
-      this.device_id = this.gatewayName.replace('Pentair: ', '')
-      this.pendingRefreshCallbacks.push(callback)
+    // if queue length is greater than 1, we just return
+    if (this.pendingRefreshCallbacks.length > 1) {
+      this.log.debug('queing pending callback. length:', this.pendingRefreshCallbacks.length)
+      return
+    }
 
-      // if queue length is great than 1, we just return
-      if (this.pendingRefreshCallbacks.length > 1) {
-        this.log.debug('queing pending callback. length:', this.pendingRefreshCallbacks.length)
-        return
-      }
-
-      this.connectRefreshStatus(fullConfig, connection, err => {
+    this._refreshStatus().then(
+      result => {
         for (const pendingCallback of this.pendingRefreshCallbacks) {
           this.log.debug('running pendingCallback')
-          pendingCallback(err)
+          pendingCallback(result)
         }
         this.pendingRefreshCallbacks = []
-      })
-    })
-  }
-
-  /** connect on the specified connection and refresh various `system` properties */
-  connectRefreshStatus(fullConfig, connection, callback) {
-    const platform = this
-    connection
-      .on('loggedIn', function() {
-        this.getVersion()
-      })
-      .on('version', function(version) {
-        platform.system.softwareVersion = version.version
-        platform.log.info(`connected ${platform.device_id} (${version.version})`)
-        if (fullConfig) {
-          this.getControllerConfig()
-        } else {
-          this.getPoolStatus()
-        }
-      })
-      .on('controllerConfig', function(config) {
-        platform.system.controllerId = config.controllerId
-        platform.system.isCelsius = config.degC
-        for (const circuit of config.bodyArray) {
-          if (platform.hiddenCircuitNames.indexOf(circuit.name) == -1) {
-            platform.system.circuits[circuit.circuitId] = {
-              circuitId: circuit.circuitId,
-              name: circuit.name,
-              state: 0 // this gets updated via pool status
-            }
-          } else {
-            platform.log.debug('hiding circuit', circuit.name)
-          }
-        }
-        this.getPoolStatus()
-      })
-      .on('poolStatus', function(status) {
-        connection.close()
-        platform.system.poolTemperature = platform.normalizeTemperature(status.currentTemp[0])
-        platform.system.spaTemperature = platform.normalizeTemperature(status.currentTemp[1])
-        platform.system.airTemperature = platform.normalizeTemperature(status.airTemp)
-        platform.system.isPoolActive = status.isPoolActive()
-        platform.system.isSpaActive = status.isSpaActive()
-        // go through and update state
-        for (const circuit of status.circuitArray) {
-          if (typeof platform.system.circuits[circuit.id] !== 'undefined') {
-            platform.system.circuits[circuit.id].state = circuit.state
-          }
-        }
-        callback(null)
-      })
-      .on('loginFailed', function() {
-        connection.close()
-        callback(ScreenLogicPlatform.loginError)
-      })
-    connection.connect()
-  }
-
-  setCircuitState(circuitId, circuitState, callback) {
-    this.getConnection((err, connection) => {
-      if (err) {
-        callback(err)
-        return
+      },
+      _rejected => {
+        // will never happen
       }
-      const platform = this
-      connection
-        .on('loggedIn', function() {
-          this.setCircuitState(platform.controllerId, circuitId, circuitState)
-        })
-        .on('circuitStateChanged', function() {
-          connection.close()
-          callback(null)
-          // schedule a refresh after updating...
-          setTimeout(() => {
-            platform.refreshAccessoryValues(() => {})
-          }, 10)
-        })
-        .on('loginFailed', function() {
-          connection.close()
-          callback(ScreenLogicPlatform.loginError)
-        })
-      connection.connect()
-    })
+    )
   }
 
-  getConnection(callback) {
-    var connectionGetter, connectionVia
-
-    if (this.config.ip_address) {
-      connectionGetter = this.getConnectionByIPAddress
-      connectionVia = 'ip_address'
-    } else if (this.config.username && this.config.password) {
-      connectionGetter = this.getConnectionByRemoteLogin
-      connectionVia = 'remote'
-    } else {
-      connectionGetter = this.getConnectionByBroadcast
-      connectionVia = 'broadcast'
+  /** returns null or err (never rejects) */
+  async _refreshStatus() {
+    try {
+      const poolStatus = await this.poolController.getPoolStatus()
+      this._updateAccessories(poolStatus, null)
+      return null
+    } catch (err) {
+      this._updateAccessories(null, err)
+      return err
     }
-
-    connectionGetter.call(this, (err, connection) => {
-      if (!err) {
-        this.log.debug(
-          this.gatewayName,
-          connection.serverAddress,
-          connection.serverPort,
-          'via',
-          connectionVia
-        )
-        callback(null, connection)
-      } else {
-        this.log.error('connectionGetter failed:', err.message)
-        callback(err)
-      }
-    })
   }
 
-  /** get a connection by udp broadcast */
-  getConnectionByBroadcast(callback) {
-    const platform = this
-    let finder = new ScreenLogic.FindUnits()
-    finder.on('serverFound', server => {
-      finder.close()
-      platform.gatewayName = server.gatewayName
-      callback(null, new ScreenLogic.UnitConnection(server))
-    })
-    finder.search()
-  }
-
-  /** get a connection by IP address */
-  getConnectionByIPAddress(callback) {
-    const platform = this
-    platform.gatewayName = platform.config['username'] || 'Pentair: XX-XX-XX'
-    // force it to be async to keep callback contract
-    setImmediate(() => {
-      callback(
-        null,
-        new ScreenLogic.UnitConnection(
-          platform.config.port || 80,
-          platform.config.ip_address,
-          platform.config['password']
-        )
-      )
-    })
-  }
-
-  /** find a unit by remote login */
-  getConnectionByRemoteLogin(callback) {
-    const platform = this
-    var remote = new ScreenLogic.RemoteLogin(platform.config.username)
-    remote.on('gatewayFound', function(unit) {
-      remote.close()
-      if (unit && unit.gatewayFound) {
-        platform.gatewayName = platform.config.username // unit.gatewayName
-        callback(
-          null,
-          new ScreenLogic.UnitConnection(unit.port, unit.ipAddr, platform.config.password)
-        )
-      } else {
-        callback(ScreenLogicPlatform.noRemoteUnitFoundError)
-      }
-    })
-    remote.connect()
+  async setCircuitState(circuitId, circuitState) {
+    return this.poolController.setCircuitState(circuitId, circuitState)
   }
 
   /** convenience method for accessories */
@@ -324,7 +168,7 @@ class ScreenLogicPlatform {
       .setCharacteristic(Characteristic.FirmwareRevision, '')
       // store software version in model, since it doesn't follow
       // proper n.n.n format Apple requires and model is a string
-      .setCharacteristic(Characteristic.Model, this.system.softwareVersion)
+      .setCharacteristic(Characteristic.Model, this.poolConfig.softwareVersion)
       .setCharacteristic(Characteristic.SerialNumber, this.device_id)
     return informationService
   }
@@ -338,7 +182,7 @@ class ScreenLogicPlatform {
           platform.log.debug(description, this.displayName, ':', this.value)
           callback(null, this.value)
         } else {
-          platform.log.error('refreshAccessories failed:', err.message)
+          platform.log.error('refreshAccessories failed:', err)
           callback(err, null)
         }
       })
@@ -347,7 +191,7 @@ class ScreenLogicPlatform {
 
   /** normalize temperature to celsius for homekit */
   normalizeTemperature(temperature) {
-    return this.system.isCelsius
+    return this.poolConfig.isCelsius
       ? temperature
       : ScreenLogicPlatform.fahrenheitToCelsius(temperature)
   }
@@ -360,8 +204,3 @@ class ScreenLogicPlatform {
     return temperature * 1.8 + 32
   }
 }
-
-// these are declared outside the class due to eslint
-ScreenLogicPlatform.loginError = new Error('unable to login')
-ScreenLogicPlatform.noRemoteUnitFoundError = new Error('no remote unit found')
-ScreenLogicPlatform.noBroadcastUnitFoundError = new Error('no unit found via broadcast')
