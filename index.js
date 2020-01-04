@@ -65,7 +65,12 @@ class ScreenLogicPlatform {
 
     this.device_id = this.poolConfig.gatewayName.replace('Pentair: ', '')
 
-    this.log.info('connected:', this.poolConfig.gatewayName, this.poolConfig.softwareVersion)
+    this.log.info(
+      'connected:',
+      this.poolConfig.gatewayName,
+      this.poolConfig.softwareVersion,
+      '(getPoolConfig)'
+    )
 
     var accessories = []
     this.poolTempAccessory = new TemperatureAccessory(POOL_TEMP_NAME, this)
@@ -144,6 +149,7 @@ class ScreenLogicPlatform {
   async _refreshStatus() {
     try {
       const poolStatus = await this.poolController.getPoolStatus()
+      this.log.info('connected:', this.poolConfig.gatewayName, '(getPoolStatus)')
       this._updateAccessories(poolStatus, null)
       return null
     } catch (err) {
