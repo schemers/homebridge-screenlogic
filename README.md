@@ -2,8 +2,6 @@
 
 Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) using the [node-screenlogic](https://github.com/parnic/node-screenlogic) library.
 
-**Note:** this plugin is in very early developement and not ready for prime time yet.
-
 <img src="https://i.imgur.com/JIHqTjS.png" width="300">
 
 # Installation
@@ -82,7 +80,7 @@ Use this to go through Pentair servers.
 
 - creates a _Switch_ accessory for each discovered circuit (i.e., Pool, Spa, Jets, Pool Light, Spa Light, etc)
 
-# Planned HomeKit Accessory Types
+# Other Potential HomeKit Accessory Types
 
 ## Pool
 
