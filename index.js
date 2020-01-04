@@ -32,7 +32,7 @@ class ScreenLogicPlatform {
   constructor(log, config) {
     this.log = log
     this.config = config
-    this.pendingRefreshCallbacks = []
+    this.pendingRefreshPromise = null
     this.poolController = new Pool.Controller(config)
   }
 
@@ -90,9 +90,44 @@ class ScreenLogicPlatform {
       accessories.push(switchAccessory)
     }
 
-    await this._refreshStatus()
+    // catch error here so accessories still get returned
+    try {
+      await this._refreshStatus()
+    } catch (err) {
+      this.log.error('initial refresh failed', err)
+    }
 
     return accessories
+  }
+
+  // refresh all accessories
+  async _refreshAccessoryValues() {
+    // if there already is a pending promise, just return it
+    if (this.pendingRefreshPromise) {
+      this.log.debug('re-using existing pendingRefreshPromise')
+    } else {
+      this.log.debug('creating new pendingRefreshPromise')
+      this.pendingRefreshPromise = this._refreshStatus()
+      this.pendingRefreshPromise.finally(() => {
+        this.log.debug('clearing pendingRefreshPromise')
+        this.pendingRefreshPromise = null
+      })
+    }
+    return this.pendingRefreshPromise
+  }
+
+  /** gets pool status,  updates accessories, and resolves */
+  async _refreshStatus() {
+    try {
+      const poolStatus = await this.poolController.getPoolStatus()
+      this.log.info('connected:', this.poolConfig.gatewayName, '(getPoolStatus)')
+      this._updateAccessories(poolStatus, null)
+      return null
+    } catch (err) {
+      this.log.error('error getting pool status', err)
+      this._updateAccessories(null, err)
+      throw err
+    }
   }
 
   /** updates all accessory data with latest values after a refresh */
@@ -121,44 +156,6 @@ class ScreenLogicPlatform {
     }
   }
 
-  // refresh all accessories
-  refreshAccessoryValues(callback) {
-    this.pendingRefreshCallbacks.push(callback)
-
-    // if queue length is greater than 1, we just return
-    if (this.pendingRefreshCallbacks.length > 1) {
-      this.log.debug('queing pending callback. length:', this.pendingRefreshCallbacks.length)
-      return
-    }
-
-    this._refreshStatus().then(
-      result => {
-        for (const pendingCallback of this.pendingRefreshCallbacks) {
-          this.log.debug('running pendingCallback')
-          pendingCallback(result)
-        }
-        this.pendingRefreshCallbacks = []
-      },
-      _rejected => {
-        // will never happen because _refreshStatus never rejects
-      }
-    )
-  }
-
-  /** returns null or err (never rejects) */
-  async _refreshStatus() {
-    try {
-      const poolStatus = await this.poolController.getPoolStatus()
-      this.log.info('connected:', this.poolConfig.gatewayName, '(getPoolStatus)')
-      this._updateAccessories(poolStatus, null)
-      return null
-    } catch (err) {
-      this.log.error('error getting pool status', err)
-      this._updateAccessories(null, err)
-      return err
-    }
-  }
-
   async setCircuitState(circuitId, circuitState) {
     return this.poolController.setCircuitState(circuitId, circuitState)
   }
@@ -177,33 +174,23 @@ class ScreenLogicPlatform {
   }
 
   /** convenience function to add an `on('get')` handler which refreshes accessory values  */
-  bindCharacteristicGet(service, characteristic, description) {
+  bindCharacteristicGet(service, characteristic) {
     const platform = this
     service.getCharacteristic(characteristic).on('get', function(callback) {
-      platform.refreshAccessoryValues(err => {
-        if (!err) {
-          platform.log.debug(description, this.displayName, ':', this.value)
+      platform._refreshAccessoryValues().then(
+        _sucess => {
           callback(null, this.value)
-        } else {
+        },
+        err => {
           platform.log.error('refreshAccessories failed:', err)
           callback(err, null)
         }
-      })
+      )
     })
   }
 
   /** normalize temperature to celsius for homekit */
   normalizeTemperature(temperature) {
-    return this.poolConfig.isCelsius
-      ? temperature
-      : ScreenLogicPlatform.fahrenheitToCelsius(temperature)
-  }
-
-  static fahrenheitToCelsius(temperature) {
-    return (temperature - 32) / 1.8
-  }
-
-  static celsiusToFahrenheit(temperature) {
-    return temperature * 1.8 + 32
+    return this.poolConfig.isCelsius ? temperature : (temperature - 32) / 1.8
   }
 }

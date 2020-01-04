@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+...
+
+## v1.1.2 - 2020-1-3
+
 ### Fixed
 
-- log errors in \_refreshStatus
+- log connected/errors in \_refreshStatus
+
+- replace pending callback queue with pending promise
 
 ## v1.1.1 - 2020-1-2
 
