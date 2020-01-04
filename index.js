@@ -27,7 +27,7 @@ module.exports = function(homebridge) {
 const POOL_TEMP_NAME = 'Pool'
 const SPA_TEMP_NAME = 'Spa'
 const AIR_TEMP_NAME = 'Air'
-const DEFAULT_STATUS_POLLING_SECONDS = 300
+const DEFAULT_STATUS_POLLING_SECONDS = 60
 
 class ScreenLogicPlatform {
   constructor(log, config) {
