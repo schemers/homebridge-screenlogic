@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.1.3 - 2020-1-3
+
+### Fixed
+
+- promise.then(f1,f2) -> promise.then(f1).catch(f2) cleanup
+
+- remove bluebird dependency since not using it
+
 ## v1.1.2 - 2020-1-3
 
 ### Fixed

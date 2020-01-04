@@ -40,16 +40,15 @@ class ScreenLogicPlatform {
   accessories(callback) {
     this.log.info('Fetching ScreenLogic Info...')
 
-    this._accessories().then(
-      foundAccessories => {
+    this._accessories()
+      .then(foundAccessories => {
         this.log.info('found', foundAccessories.length, 'accessories')
         callback(foundAccessories)
-      },
-      err => {
+      })
+      .catch(err => {
         this.log.error('unable to get pool config:', err)
         callback([])
-      }
-    )
+      })
   }
 
   async _accessories() {
@@ -177,15 +176,15 @@ class ScreenLogicPlatform {
   bindCharacteristicGet(service, characteristic) {
     const platform = this
     service.getCharacteristic(characteristic).on('get', function(callback) {
-      platform._refreshAccessoryValues().then(
-        _sucess => {
+      platform
+        ._refreshAccessoryValues()
+        .then(_success => {
           callback(null, this.value)
-        },
-        err => {
+        })
+        .catch(err => {
           platform.log.error('refreshAccessories failed:', err)
           callback(err, null)
-        }
-      )
+        })
     })
   }
 
