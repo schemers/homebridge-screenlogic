@@ -178,13 +178,8 @@ class ScreenLogicPlatform {
     service.getCharacteristic(characteristic).on('get', function(callback) {
       platform
         ._refreshAccessoryValues()
-        .then(_success => {
-          callback(null, this.value)
-        })
-        .catch(err => {
-          platform.log.error('refreshAccessories failed:', err)
-          callback(err, null)
-        })
+        .then(() => callback(null, this.value))
+        .catch(err => callback(err, null))
     })
   }
 
