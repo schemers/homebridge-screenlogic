@@ -27,6 +27,7 @@ module.exports = function(homebridge) {
 const POOL_TEMP_NAME = 'Pool'
 const SPA_TEMP_NAME = 'Spa'
 const AIR_TEMP_NAME = 'Air'
+const DEFAULT_STATUS_POLLING_SECONDS = 300
 
 class ScreenLogicPlatform {
   constructor(log, config) {
@@ -89,14 +90,33 @@ class ScreenLogicPlatform {
       accessories.push(switchAccessory)
     }
 
-    // catch error here so accessories still get returned
-    try {
-      await this._refreshStatus()
-    } catch (err) {
-      this.log.error('initial refresh failed', err)
-    }
+    // start polling for status
+    this._pollForStatus(0)
 
     return accessories
+  }
+
+  /** start polling process with truncated exponential backoff: https://cloud.google.com/storage/docs/exponential-backoff */
+  _pollForStatus(retryAttempt) {
+    let backoff = function(retryAttempt, maxTime) {
+      retryAttempt = Math.max(retryAttempt, 1)
+      return Math.min(Math.pow(retryAttempt - 1, 2) + Math.random(), maxTime)
+    }
+
+    const pollingInterval = this.config.statusPollingSeconds || DEFAULT_STATUS_POLLING_SECONDS
+
+    this._refreshAccessoryValues()
+      .then(() => {
+        // on success, start another timeout at normal pollingInterval
+        this.log.debug('_pollForStatus success, retryAttempt:', retryAttempt)
+        setTimeout(() => this._pollForStatus(0), pollingInterval * 1000)
+      })
+      .catch(err => {
+        // on error, start another timeout with backoff
+        const timeout = pollingInterval + backoff(retryAttempt, pollingInterval * 20)
+        this.log.error('_pollForStatus retryAttempt:', retryAttempt, 'timeout:', timeout, err)
+        setTimeout(() => this._pollForStatus(retryAttempt + 1), timeout * 1000)
+      })
   }
 
   // refresh all accessories
@@ -119,7 +139,7 @@ class ScreenLogicPlatform {
   async _refreshStatus() {
     try {
       const poolStatus = await this.poolController.getPoolStatus()
-      this.log.info('connected:', this.poolConfig.gatewayName, '(getPoolStatus)')
+      this.log.debug('connected:', this.poolConfig.gatewayName, '(getPoolStatus)')
       this._updateAccessories(poolStatus, null)
       return null
     } catch (err) {

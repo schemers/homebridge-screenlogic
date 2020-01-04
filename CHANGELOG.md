@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.2.0 - 2020-1-4
+
+### Added
+
+- add background polling for status updates to enable automations to work
+
+- add `statusPollingSeconds` option to config, defaults to 60 seconds
+
+- expontential backoff on error
+
 ## v1.1.3 - 2020-1-3
 
 ### Fixed

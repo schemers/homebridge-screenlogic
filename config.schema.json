@@ -41,6 +41,14 @@
         "placeholder": "hidden circuits",
         "required": false,
         "description": "Optional. Comma-seperated list of circuit names to hide."
+      },
+      "statusPollingSeconds": {
+        "title": "Status Polling (Seconds)",
+        "type": "integer",
+        "required": false,
+        "minimum": 1,
+        "placeholder": "Get status every __ seconds",
+        "description": "Status (such as pool on, lights, temperatures, etc) is fetched on demand as needed, and is also polled for use in automatations. By default this is done every 60 seconds."
       }
     }
   }
