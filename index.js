@@ -56,11 +56,11 @@ class ScreenLogicPlatform {
     this.poolConfig = await this.poolController.getPoolConfig()
 
     // filter out hidden circuits
-    const hiddenCircuits = this.config.hidden_circuits || ''
-    const hiddenCircuitNames = hiddenCircuits.split(',').map(item => item.trim())
+    const hiddenNames = this.config.hidden_circuits || ''
+    const hiddenCircuits = Set(hiddenNames.split(',').map(item => item.trim()))
 
     this.poolConfig.circuits = this.poolConfig.circuits.filter(circuit => {
-      return hiddenCircuitNames.indexOf(circuit.name) == -1
+      return !hiddenCircuits.has(circuit.name)
     })
 
     this.device_id = this.poolConfig.gatewayName.replace('Pentair: ', '')
