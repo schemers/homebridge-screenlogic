@@ -57,7 +57,7 @@ class ScreenLogicPlatform {
 
     // filter out hidden circuits
     const hiddenNames = this.config.hidden_circuits || ''
-    const hiddenCircuits = Set(hiddenNames.split(',').map(item => item.trim()))
+    const hiddenCircuits = new Set(hiddenNames.split(',').map(item => item.trim()))
 
     this.poolConfig.circuits = this.poolConfig.circuits.filter(circuit => {
       return !hiddenCircuits.has(circuit.name)
@@ -170,7 +170,7 @@ class ScreenLogicPlatform {
       this.spaTempAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
       this.spaTempAccessory.statusActive = status.isSpaActive
       for (const circuitAccessory of this.circuitAccessories) {
-        circuitAccessory.on = status.circuitState[circuitAccessory.circuitId] ? true : false
+        circuitAccessory.on = status.circuitState.get(circuitAccessory.circuitId) ? true : false
       }
     }
   }
