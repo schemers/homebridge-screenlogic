@@ -1,10 +1,14 @@
 # homebridge-screenlogic
 
-Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) using the [node-screenlogic](https://github.com/parnic/node-screenlogic) library.
+[![NPM version](https://img.shields.io/npm/v/homebridge-screenlogic)](https://npmjs.org/package/homebridge-screenlogic)
+![License](https://img.shields.io/npm/l/homebridge-screenlogic)
+[![Downloads](https://img.shields.io/npm/dm/homebridge-screenlogic.svg)](https://npmjs.org/package/homebridge-screenlogic)
+
+## Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) using the [node-screenlogic](https://github.com/parnic/node-screenlogic) library.
 
 <img src="https://i.imgur.com/JIHqTjS.png" width="300">
 
-# Installation
+## Installation
 
 <!-- 2. Clone (or pull) this repository from github into the same path Homebridge lives (usually `/usr/local/lib/node_modules`). Note: the code currently on GitHub is in beta, and is newer than the latest published version of this package on `npm` -->
 
@@ -12,7 +16,7 @@ Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) usi
 2. Install this plug-in using: `npm install -g homebridge-screenlogic`
 3. Update your configuration file. See example `config.json` snippet below.
 
-# Configuration
+## Configuration
 
 Configuration samples (edit `~/.homebridge/config.json`):
 
