@@ -45,6 +45,7 @@
       "statusPollingSeconds": {
         "title": "Status Polling (Seconds)",
         "type": "integer",
+        "default": 60,
         "required": false,
         "minimum": 1,
         "placeholder": "Get status every __ seconds",

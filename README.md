@@ -66,6 +66,8 @@ Use this to go through Pentair servers.
 
 - `"hidden_circuits"` comma-separated list of circuit names to hide. Set this for circuits you don't want showing up as switches. (ie.., `"Aux 6,Floor Cleaner"`).
 
+- `"statusPollingSeconds"` time in seconds to poll for blind positions. Default is 60 seconds.
+
 # Implemented HomeKit Accessory Types
 
 ## Air Temperature
