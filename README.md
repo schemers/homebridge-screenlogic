@@ -126,7 +126,7 @@ An alternative would be to expose three distinct on/off switches that represent 
 
 The other compromise is that the pool and spa heaters do _not_ turn the pool and/or spa on or off, they just change the heat mode.
 
-i.e., if you want to heat the spa, you need do two things:
+i.e., if you want to heat the spa, you need to do two things:
 
 1. turn on the Spa (via the Spa Switch)
 2. make sure the Spa Heater is set to something other than off (most likely Heat)
