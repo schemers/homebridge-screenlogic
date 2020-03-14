@@ -76,32 +76,49 @@ class ScreenLogicPlatform {
     )
 
     var accessories = []
-    this.poolTempAccessory = new TemperatureAccessory(POOL_TEMP_NAME, this)
-    accessories.push(this.poolTempAccessory)
 
-    this.spaTempAccessory = new TemperatureAccessory(SPA_TEMP_NAME, this)
-    accessories.push(this.spaTempAccessory)
+    if (!this.config.hidePoolTemperatureSensor) {
+      this.poolTempAccessory = new TemperatureAccessory(POOL_TEMP_NAME, this)
+      accessories.push(this.poolTempAccessory)
+    } else {
+      this.poolTempAccessory = null
+    }
+
+    if (!this.config.hideSpaTemperatureSensor) {
+      this.spaTempAccessory = new TemperatureAccessory(SPA_TEMP_NAME, this)
+      accessories.push(this.spaTempAccessory)
+    } else {
+      this.spaTempAccessory = null
+    }
 
     this.airTempAccessory = new TemperatureAccessory(AIR_TEMP_NAME, this)
     accessories.push(this.airTempAccessory)
 
-    this.poolThermostatAccessory = new ThermostatAccessory(
-      POOL_THERMOSTAT_NAME,
-      this,
-      0,
-      this.normalizeTemperature(this.poolConfig.poolMinSetPoint),
-      this.normalizeTemperature(this.poolConfig.poolMaxSetPoint)
-    )
-    accessories.push(this.poolThermostatAccessory)
+    if (!this.config.hidePoolThermostat) {
+      this.poolThermostatAccessory = new ThermostatAccessory(
+        POOL_THERMOSTAT_NAME,
+        this,
+        0,
+        this.normalizeTemperature(this.poolConfig.poolMinSetPoint),
+        this.normalizeTemperature(this.poolConfig.poolMaxSetPoint)
+      )
+      accessories.push(this.poolThermostatAccessory)
+    } else {
+      this.poolThermostatAccessory = null
+    }
 
-    this.spaThermostatAccessory = new ThermostatAccessory(
-      SPA_THERMOSTAT_NAME,
-      this,
-      1,
-      this.normalizeTemperature(this.poolConfig.spaMinSetPoint),
-      this.normalizeTemperature(this.poolConfig.spaMaxSetPoint)
-    )
-    accessories.push(this.spaThermostatAccessory)
+    if (!this.config.hideSpaThermostat) {
+      this.spaThermostatAccessory = new ThermostatAccessory(
+        SPA_THERMOSTAT_NAME,
+        this,
+        1,
+        this.normalizeTemperature(this.poolConfig.spaMinSetPoint),
+        this.normalizeTemperature(this.poolConfig.spaMaxSetPoint)
+      )
+      accessories.push(this.spaThermostatAccessory)
+    } else {
+      this.spaThermostatAccessory = null
+    }
 
     this.circuitAccessories = []
 
@@ -174,8 +191,12 @@ class ScreenLogicPlatform {
   _updateAccessories(status, err) {
     const fault = err ? true : false
     this.airTempAccessory.statusFault = fault
-    this.poolTempAccessory.statusFault = fault
-    this.spaTempAccessory.statusFault = fault
+    if (this.poolTempAccessory) {
+      this.poolTempAccessory.statusFault = fault
+    }
+    if (this.spaTempAccessory) {
+      this.spaTempAccessory.statusFault = fault
+    }
 
     for (const circuitAccessory of this.circuitAccessories) {
       circuitAccessory.stateFault = fault
@@ -185,31 +206,41 @@ class ScreenLogicPlatform {
       this.airTempAccessory.temperature = this.normalizeTemperature(status.airTemperature)
       this.airTempAccessory.statusActive = true
 
-      this.poolTempAccessory.temperature = this.normalizeTemperature(status.poolTemperature)
-      this.poolTempAccessory.statusActive = status.isPoolActive
+      if (this.poolTempAccessory) {
+        this.poolTempAccessory.temperature = this.normalizeTemperature(status.poolTemperature)
+        this.poolTempAccessory.statusActive = status.isPoolActive
+      }
 
-      this.spaTempAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
-      this.spaTempAccessory.statusActive = status.isSpaActive
+      if (this.spaTempAccessory) {
+        this.spaTempAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
+        this.spaTempAccessory.statusActive = status.isSpaActive
+      }
 
-      this.poolThermostatAccessory.temperature = this.normalizeTemperature(status.poolTemperature)
-      this.poolThermostatAccessory.targetTemperature = this.normalizeTemperature(
-        status.poolSetPoint
-      )
-      this.poolThermostatAccessory.heatingCoolingState = status.poolIsHeating
-        ? Characteristic.CurrentHeaterCoolerState.HEAT
-        : Characteristic.CurrentHeaterCoolerState.OFF
-      this.poolThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
-        status.poolHeatMode
-      )
+      if (this.poolThermostatAccessory) {
+        this.poolThermostatAccessory.temperature = this.normalizeTemperature(status.poolTemperature)
+        this.poolThermostatAccessory.targetTemperature = this.normalizeTemperature(
+          status.poolSetPoint
+        )
+        this.poolThermostatAccessory.heatingCoolingState = status.poolIsHeating
+          ? Characteristic.CurrentHeaterCoolerState.HEAT
+          : Characteristic.CurrentHeaterCoolerState.OFF
+        this.poolThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
+          status.poolHeatMode
+        )
+      }
 
-      this.spaThermostatAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
-      this.spaThermostatAccessory.targetTemperature = this.normalizeTemperature(status.spaSetPoint)
-      this.spaThermostatAccessory.heatingCoolingState = status.spaIsHeating
-        ? Characteristic.CurrentHeaterCoolerState.HEAT
-        : Characteristic.CurrentHeaterCoolerState.OFF
-      this.spaThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
-        status.spaHeatMode
-      )
+      if (this.spaThermostatAccessory) {
+        this.spaThermostatAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
+        this.spaThermostatAccessory.targetTemperature = this.normalizeTemperature(
+          status.spaSetPoint
+        )
+        this.spaThermostatAccessory.heatingCoolingState = status.spaIsHeating
+          ? Characteristic.CurrentHeaterCoolerState.HEAT
+          : Characteristic.CurrentHeaterCoolerState.OFF
+        this.spaThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
+          status.spaHeatMode
+        )
+      }
 
       for (const circuitAccessory of this.circuitAccessories) {
         circuitAccessory.on = status.circuitState.get(circuitAccessory.circuitId) ? true : false

@@ -42,6 +42,30 @@
         "required": false,
         "description": "Optional. Comma-seperated list of circuit names to hide."
       },
+      "hidePoolTemperatureSensor": {
+        "title": "Hide Pool Temperature Sensor",
+        "type": "boolean",
+        "default": false,
+        "description": "Hides the pool temperature sensor, which is redundant if you are showing pool thermostat."
+      },
+      "hideSpaTemperatureSensor": {
+        "title": "Hide Spa Temperature Sensor",
+        "type": "boolean",
+        "default": false,
+        "description": "Hides the spa temperature sensor, which is redundant if you are showing spa thermostat."
+      },
+      "hidePoolThermostat": {
+        "title": "Hide Pool Thermostat",
+        "type": "boolean",
+        "default": false,
+        "description": "Hides the pool thermostat (aka, pool heater)."
+      },
+      "hideSpaThermostat": {
+        "title": "Hide Spa Thermostat",
+        "type": "boolean",
+        "default": false,
+        "description": "Hides the spa thermostat (aka, spa heater)."
+      },
       "statusPollingSeconds": {
         "title": "Status Polling (Seconds)",
         "type": "integer",

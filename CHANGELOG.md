@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add "Pool Heater" and "Spa Heater" accessories which are exposed as HomeKit Thermostats. Fixes #1. See README.md for details
 
+- add `hidePoolTemperatureSensor` config that hides the pool temperature sensor, which is redundant if you are showing pool thermostat
+
+- add `hideSpaTemperatureSensor` config that hides the spa temperature sensor, which is redundant if you are showing spa thermostat
+
+- add `hidePoolThermostat` config that hides the pool thermostat (aka, pool heater) if you don't want to allow changes via HomeKit
+
+- add `hideSpaThermostat` config that hides the spa thermostat (aka, spa heater) if you don't want to allow changes via HomeKit
+
 ### Fixed
 
 - fixes #2, typo in description
