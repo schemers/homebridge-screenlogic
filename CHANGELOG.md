@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.3.2 - 2020-3-14
+
+### Added
+
+- updated images in README.md
+
 ## v1.3.1 - 2020-3-14
 
 ### Added
