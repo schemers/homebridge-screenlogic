@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- add "Pool Heater" and "Spa Heater" accessories which are exposed as HomeKit Thermostats. Fixes #1. See README.md for details
+
 ### Fixed
 
 - fixes #2, typo in description
-
-...
 
 ## v1.2.1 - 2020-1-4
 

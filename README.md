@@ -86,12 +86,42 @@ Use this to go through Pentair servers.
 
 - creates a _Switch_ accessory for each discovered circuit (i.e., Pool, Spa, Jets, Pool Light, Spa Light, etc)
 
-# Other Potential HomeKit Accessory Types
-
-## Pool
+## Pool Heater
 
 - _Thermostat_ accessory with ambient temperature, mode control (heat/cool/auto/off), and target temperature control
 
-## Spa
+## Spa Heater
 
 - _Thermostat_ accessory with ambient temperature, mode control (heat/cool/auto/off), and target temperature control
+
+# Note on Pool/Spa Heater
+
+The Pool and Spa Heater accessories are exposed as Thermostats in HomeKit. Since the semantics are slightly different between Pentair heat mode and a thermostat target heating state, a mapping is required.
+
+## Mapping
+
+I picked the following mapping, which seemed like the most logical mapping:
+
+| Pentair Heat Mode | Thermostat State |
+| ----------------- | ---------------- |
+| Off               | Off              |
+| Heater            | Heat             |
+| Solar Preferred   | Auto             |
+| Solar             | Cool             |
+
+The only strange one is mapping `Solar` to `Cool`. I decided to go that route given the first three were fairly obvious (to me at least).
+
+An alternative would be to expose three distinct on/off switches that represent each mode, and then ignore state changes (and maybe just allowing Off/Heat).
+
+## "On" State
+
+The other compromise is that the pool and spa heaters do _not_ turn the pool and/or spa on or off, they just change the heat mode.
+
+i.e., if you want to heat the spa, you need do two things:
+
+1. turn on the Spa (via the Spa Switch)
+2. make sure the Spa Heater is set to something other than off (most likely Heat)
+
+This should work well in practice though, as you will generally have a set target temperature and mode, and then just turn the spa on/off without mucking with the thermostat.
+
+This also means that even if the Pool/Spa is turned off and you open the Pool/Spa Heater it mght say "HEATING TO". It will not actually being heating unless the corresponding Pool/Spa switch is turned on.

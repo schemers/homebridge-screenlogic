@@ -3,7 +3,7 @@
 const Pool = require('./lib/Pool')
 
 let Accessory, Service, Characteristic, uuid
-let TemperatureAccessory, CircuitAccessory
+let TemperatureAccessory, CircuitAccessory, ThermostatAccessory
 
 module.exports = function(homebridge) {
   Accessory = homebridge.hap.Accessory
@@ -20,6 +20,7 @@ module.exports = function(homebridge) {
 
   TemperatureAccessory = require('./lib/TemperatureAccessory')(exportedTypes)
   CircuitAccessory = require('./lib/CircuitAccessory')(exportedTypes)
+  ThermostatAccessory = require('./lib/ThermostatAccessory')(exportedTypes)
 
   homebridge.registerPlatform('homebridge-screenlogic', 'ScreenLogic', ScreenLogicPlatform)
 }
@@ -27,6 +28,8 @@ module.exports = function(homebridge) {
 const POOL_TEMP_NAME = 'Pool'
 const SPA_TEMP_NAME = 'Spa'
 const AIR_TEMP_NAME = 'Air'
+const POOL_THERMOSTAT_NAME = 'Pool Heater'
+const SPA_THERMOSTAT_NAME = 'Spa Heater'
 const DEFAULT_STATUS_POLLING_SECONDS = 60
 
 class ScreenLogicPlatform {
@@ -81,6 +84,24 @@ class ScreenLogicPlatform {
 
     this.airTempAccessory = new TemperatureAccessory(AIR_TEMP_NAME, this)
     accessories.push(this.airTempAccessory)
+
+    this.poolThermostatAccessory = new ThermostatAccessory(
+      POOL_THERMOSTAT_NAME,
+      this,
+      0,
+      this.normalizeTemperature(this.poolConfig.poolMinSetPoint),
+      this.normalizeTemperature(this.poolConfig.poolMaxSetPoint)
+    )
+    accessories.push(this.poolThermostatAccessory)
+
+    this.spaThermostatAccessory = new ThermostatAccessory(
+      SPA_THERMOSTAT_NAME,
+      this,
+      1,
+      this.normalizeTemperature(this.poolConfig.spaMinSetPoint),
+      this.normalizeTemperature(this.poolConfig.spaMaxSetPoint)
+    )
+    accessories.push(this.spaThermostatAccessory)
 
     this.circuitAccessories = []
 
@@ -169,6 +190,27 @@ class ScreenLogicPlatform {
 
       this.spaTempAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
       this.spaTempAccessory.statusActive = status.isSpaActive
+
+      this.poolThermostatAccessory.temperature = this.normalizeTemperature(status.poolTemperature)
+      this.poolThermostatAccessory.targetTemperature = this.normalizeTemperature(
+        status.poolSetPoint
+      )
+      this.poolThermostatAccessory.heatingCoolingState = status.poolIsHeating
+        ? Characteristic.CurrentHeaterCoolerState.HEAT
+        : Characteristic.CurrentHeaterCoolerState.OFF
+      this.poolThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
+        status.poolHeatMode
+      )
+
+      this.spaThermostatAccessory.temperature = this.normalizeTemperature(status.spaTemperature)
+      this.spaThermostatAccessory.targetTemperature = this.normalizeTemperature(status.spaSetPoint)
+      this.spaThermostatAccessory.heatingCoolingState = status.spaIsHeating
+        ? Characteristic.CurrentHeaterCoolerState.HEAT
+        : Characteristic.CurrentHeaterCoolerState.OFF
+      this.spaThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
+        status.spaHeatMode
+      )
+
       for (const circuitAccessory of this.circuitAccessories) {
         circuitAccessory.on = status.circuitState.get(circuitAccessory.circuitId) ? true : false
       }
@@ -177,6 +219,22 @@ class ScreenLogicPlatform {
 
   async setCircuitState(circuitId, circuitState) {
     return this.poolController.setCircuitState(circuitId, circuitState)
+  }
+
+  async setTargetTemperature(bodyType, targetTemperature) {
+    // need to convert from Celsius to what pool is conifigured for
+    var heatPoint = this.poolConfig.isCelsius
+      ? targetTemperature
+      : Math.round(targetTemperature * 1.8 + 32)
+    return this.poolController.setHeatPoint(bodyType, heatPoint)
+  }
+
+  /** set pool heat mode to target cooling state via mapping */
+  async setTargetHeatingCoolState(bodyType, targetHeatingCoolingState) {
+    return this.poolController.setHeatMode(
+      bodyType,
+      this.mapTargetHeatingCoolingStateToHeatMode(targetHeatingCoolingState)
+    )
   }
 
   /** convenience method for accessories */
@@ -206,5 +264,35 @@ class ScreenLogicPlatform {
   /** normalize temperature to celsius for homekit */
   normalizeTemperature(temperature) {
     return this.poolConfig.isCelsius ? temperature : (temperature - 32) / 1.8
+  }
+
+  /** map pool heat mode to thermostat target heating/coooling state  */
+  mapHeatModeToTargetHeatingCoolingState(poolHeatMode) {
+    switch (poolHeatMode) {
+      case Pool.HEAT_MODE_OFF:
+        return Characteristic.TargetHeatingCoolingState.OFF
+      case Pool.HEAT_MODE_HEAT_PUMP:
+        return Characteristic.TargetHeatingCoolingState.HEAT
+      case Pool.HEAT_MODE_SOLAR_PREFERRED:
+        return Characteristic.TargetHeatingCoolingState.AUTO
+      case Pool.HEAT_MODE_SOLAR:
+        return Characteristic.TargetHeatingCoolingState.COOL
+    }
+  }
+
+  /** map thermostat target heating/coooling state to pool heat mode */
+  mapTargetHeatingCoolingStateToHeatMode(targetHeatingCoolingState) {
+    switch (targetHeatingCoolingState) {
+      case Characteristic.TargetHeatingCoolingState.OFF:
+        return Pool.HEAT_MODE_OFF
+      case Characteristic.TargetHeatingCoolingState.HEAT:
+        return Pool.HEAT_MODE_HEAT_PUMP
+      case Characteristic.TargetHeatingCoolingState.AUTO:
+        return Pool.HEAT_MODE_SOLAR_PREFERRED
+      case Characteristic.TargetHeatingCoolingState.COOL:
+        return Pool.HEAT_MODE_SOLAR
+      default:
+        return Pool.HEAT_MODE_UNCHANGED
+    }
   }
 }
