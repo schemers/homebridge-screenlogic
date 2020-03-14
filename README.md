@@ -6,7 +6,8 @@
 
 ## Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) using the [node-screenlogic](https://github.com/parnic/node-screenlogic) library.
 
-<img src="https://i.imgur.com/JIHqTjS.png" width="300">
+<img src="https://i.imgur.com/jFh0EDD.png" width="300"> <img src="https://i.imgur.com/p1RKGVV.png" width="300">
+
 
 ## Installation
 
