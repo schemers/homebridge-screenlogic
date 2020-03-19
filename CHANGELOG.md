@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.3.3 - 2020-3-19
+
+### Fixed
+
+- attempt to fix issue #3
+
+was incorrectly using `Characteristic.CurrentHeaterCoolerState.{OFF,HEAT}` instead of `Characteristic.CurrentHeatingCoolingState.{HEAT,OFF}`
+
+before fixing I was seeing:
+
+```
+[3/19/2020, 2:46:56 PM][screenlogic] Pool Heater set heatingCoolingState undefined
+[3/19/2020, 2:46:56 PM][screenlogic] Pool Heater set heatingCoolingState 0
+```
+
+afer fixing:
+
+```
+[3/19/2020, 2:49:29 PM][screenlogic] Pool Heater set heatingCoolingState 0
+[3/19/2020, 2:49:29 PM][screenlogic] Pool Heater set heatingCoolingState 0
+```
+
 ## v1.3.2 - 2020-3-14
 
 ### Added
