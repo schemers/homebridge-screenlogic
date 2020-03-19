@@ -222,8 +222,8 @@ class ScreenLogicPlatform {
           status.poolSetPoint
         )
         this.poolThermostatAccessory.heatingCoolingState = status.poolIsHeating
-          ? Characteristic.CurrentHeaterCoolerState.HEAT
-          : Characteristic.CurrentHeaterCoolerState.OFF
+          ? Characteristic.CurrentHeatingCoolingState.HEAT
+          : Characteristic.CurrentHeatingCoolingState.OFF
         this.poolThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
           status.poolHeatMode
         )
@@ -235,8 +235,8 @@ class ScreenLogicPlatform {
           status.spaSetPoint
         )
         this.spaThermostatAccessory.heatingCoolingState = status.spaIsHeating
-          ? Characteristic.CurrentHeaterCoolerState.HEAT
-          : Characteristic.CurrentHeaterCoolerState.OFF
+          ? Characteristic.CurrentHeatingCoolingState.HEAT
+          : Characteristic.CurrentHeatingCoolingState.OFF
         this.spaThermostatAccessory.targetHeatingCoolingState = this.mapHeatModeToTargetHeatingCoolingState(
           status.spaHeatMode
         )
