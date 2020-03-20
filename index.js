@@ -75,6 +75,8 @@ class ScreenLogicPlatform {
       '(getPoolConfig)'
     )
 
+    this.log.debug('getPoolConfig:', this.poolConfig)
+
     var accessories = []
 
     if (!this.config.hidePoolTemperatureSensor) {
@@ -178,6 +180,7 @@ class ScreenLogicPlatform {
     try {
       const poolStatus = await this.poolController.getPoolStatus()
       this.log.debug('connected:', this.poolConfig.gatewayName, '(getPoolStatus)')
+      this.log.debug('getPoolStatus:', poolStatus)
       this._updateAccessories(poolStatus, null)
       return null
     } catch (err) {
@@ -308,6 +311,8 @@ class ScreenLogicPlatform {
         return Characteristic.TargetHeatingCoolingState.AUTO
       case Pool.HEAT_MODE_SOLAR:
         return Characteristic.TargetHeatingCoolingState.COOL
+      default:
+        return Characteristic.TargetHeatingCoolingState.OFF
     }
   }
 

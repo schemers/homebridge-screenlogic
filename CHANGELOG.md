@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.3.4 - 2020-3-20
+
+### Added
+
+- dump out pool config and status when debug is turned on
+
+- add a default case for `mapHeatModeToTargetHeatingCoolingState`
+
 ## v1.3.3 - 2020-3-19
 
 ### Fixed
