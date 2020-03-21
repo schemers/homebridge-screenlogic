@@ -75,7 +75,7 @@ Use this to go through Pentair servers.
 
 - `"hideSpaThermostat"` hides the spa thermostat (aka, spa heater) if you don't want to allow changes via HomeKit. Default is `false`.
 
-- `"statusPollingSeconds"` time in seconds to poll for blind positions. Default is 60 seconds.
+- `"statusPollingSeconds"` time in seconds to poll for pool statu. Default is 60 seconds.
 
 # Implemented HomeKit Accessory Types
 
