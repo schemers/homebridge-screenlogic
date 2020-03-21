@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ...
 
+## v1.3.5 - 2020-3-20
+
+- fixes #3 by clamping set point so it is just above/below the min/max set point
+
 ## v1.3.4 - 2020-3-20
 
 ### Added
