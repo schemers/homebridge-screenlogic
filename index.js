@@ -167,10 +167,16 @@ class ScreenLogicPlatform {
     } else {
       this.log.debug('creating new pendingRefreshPromise')
       this.pendingRefreshPromise = this._refreshStatus()
-      this.pendingRefreshPromise.finally(() => {
-        this.log.debug('clearing pendingRefreshPromise')
-        this.pendingRefreshPromise = null
-      })
+      this.pendingRefreshPromise
+        // this catch is needed since we have a finally,
+        // otherwise we'd get an unhandled promise rejection error.
+        .catch(err => {
+          this.log.error('_refreshAccessoryValues', err)
+        })
+        .finally(() => {
+          this.log.debug('clearing pendingRefreshPromise')
+          this.pendingRefreshPromise = null
+        })
     }
     return this.pendingRefreshPromise
   }
