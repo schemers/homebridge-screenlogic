@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-...
+## Fixed
+
+- updated to `node-screenlogic` v1.4.0 which emits errors to the caller
+
+- add `.on('error')` handlers to propagate errors back to promises via reject
 
 ## v1.4.0 - 2020-4-18
 
