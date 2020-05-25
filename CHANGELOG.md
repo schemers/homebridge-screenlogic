@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+...
+
+## v1.4.1 - 2020-5-25
+
 ## Fixed
 
 - updated to `node-screenlogic` v1.4.0 which emits errors to the caller
