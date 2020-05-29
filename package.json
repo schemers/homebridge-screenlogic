@@ -1,6 +1,6 @@
 {
   "name": "homebridge-screenlogic",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Plugin for Pentair Screenlogic Controllers",
   "main": "index.js",
   "scripts": {

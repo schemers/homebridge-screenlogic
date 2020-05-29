@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+...
+
+## v1.4.2 - 2020-5-29
+
 ### Fixed
 
 - fixes #4 by adding extra checks to see if spa or pool circuits exist
