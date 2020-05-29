@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-...
+### Fixed
+
+- fixes #4 by adding extra checks to see if spa or pool circuits exist
 
 ## v1.4.1 - 2020-5-25
 
-## Fixed
+### Fixed
 
 - updated to `node-screenlogic` v1.4.0 which emits errors to the caller
 
@@ -19,9 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.4.0 - 2020-4-18
 
+### Fixed
+
 - since we are using a shared Promise, make sure to have a `.catch` handler when also setting up the `.finally`, otherwise we'll get an unhandled promise rejection error
 
 ## v1.3.5 - 2020-3-20
+
+### Fixed
 
 - fixes #3 by clamping set point so it is just above/below the min/max set point
 

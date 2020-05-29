@@ -79,14 +79,14 @@ class ScreenLogicPlatform {
 
     var accessories = []
 
-    if (!this.config.hidePoolTemperatureSensor) {
+    if (this.poolConfig.hasPool && !this.config.hidePoolTemperatureSensor) {
       this.poolTempAccessory = new TemperatureAccessory(POOL_TEMP_NAME, this)
       accessories.push(this.poolTempAccessory)
     } else {
       this.poolTempAccessory = null
     }
 
-    if (!this.config.hideSpaTemperatureSensor) {
+    if (this.poolConfig.hasSpa && !this.config.hideSpaTemperatureSensor) {
       this.spaTempAccessory = new TemperatureAccessory(SPA_TEMP_NAME, this)
       accessories.push(this.spaTempAccessory)
     } else {
@@ -96,7 +96,7 @@ class ScreenLogicPlatform {
     this.airTempAccessory = new TemperatureAccessory(AIR_TEMP_NAME, this)
     accessories.push(this.airTempAccessory)
 
-    if (!this.config.hidePoolThermostat) {
+    if (this.poolConfig.hasPool && !this.config.hidePoolThermostat) {
       this.poolThermostatAccessory = new ThermostatAccessory(
         POOL_THERMOSTAT_NAME,
         this,
@@ -109,7 +109,7 @@ class ScreenLogicPlatform {
       this.poolThermostatAccessory = null
     }
 
-    if (!this.config.hideSpaThermostat) {
+    if (this.poolConfig.hasSpa && !this.config.hideSpaThermostat) {
       this.spaThermostatAccessory = new ThermostatAccessory(
         SPA_THERMOSTAT_NAME,
         this,
