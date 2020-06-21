@@ -79,9 +79,4 @@ export class CircuitAccessory {
     this.platform.log.debug('updateOn:', on, this.context)
     this.service.updateCharacteristic(this.platform.Characteristic.On, on)
   }
-
-  public updateStatusFault(fault: boolean) {
-    this.platform.log.debug('updateStatusFault:', fault, this.context)
-    this.service.updateCharacteristic(this.platform.Characteristic.StatusFault, fault)
-  }
 }

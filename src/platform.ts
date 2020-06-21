@@ -310,10 +310,6 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     this.poolTempAccessory?.updateStatusFault(fault)
     this.spaTempAccessory?.updateStatusFault(fault)
 
-    for (const circuitAccessory of this.circuitAccessories) {
-      circuitAccessory.updateStatusFault(fault)
-    }
-
     if (status) {
       this.airTempAccessory?.updateCurrentTemperature(
         this.normalizeTemperature(status.airTemperature),

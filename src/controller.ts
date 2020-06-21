@@ -1,4 +1,4 @@
-import { ScreenLogic } from 'node-screenlogic'
+import ScreenLogic from 'node-screenlogic'
 
 interface ControllerOptions {
   ip_address?: string
