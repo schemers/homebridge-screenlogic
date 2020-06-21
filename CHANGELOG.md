@@ -5,9 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## V2.0.0 - 2020-6-21 (MAJOR RELEASE)
 
-...
+### Added
+
+- rewrite in Typescript to provide much cleaner/safer base
+- minimum of Homebridge 1.1.1 is required
+- support DynamicPlatformPlugin
+- properly add/remove/update cached accessories on startup
+
+### Fixed
+
+- caching/persisting of accessories, so if bridge is unavailable when server starts the previous configured shades will remain
+
+- add retry logic for obtaining the initial config from the controller if there is an error contacting it
+
+- try to cleanup the way I was setting/getting/updating of service characteristics to be more proper
 
 ## v1.4.2 - 2020-5-29
 
