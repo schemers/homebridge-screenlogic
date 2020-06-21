@@ -1,9 +1,11 @@
-'use strict'
+import { ScreenLogic } from 'node-screenlogic'
 
-const ScreenLogic = require('node-screenlogic')
-
-const SPA_CIRCUIT_ID = 500
-const POOL_CIRCUIT_ID = 505
+interface ControllerOptions {
+  ip_address?: string
+  port?: number
+  username?: string
+  password?: string
+}
 
 /**
  * config options:
@@ -20,12 +22,29 @@ const POOL_CIRCUIT_ID = 505
  *     password: "..."
  *   }
  */
-class Controller {
-  constructor(config) {
-    this.config = config
+export class Controller {
+  static readonly SPA_CIRCUIT_ID = 500
+  static readonly POOL_CIRCUIT_ID = 505
+
+  static readonly HEAT_MODE_OFF = 0
+  static readonly HEAT_MODE_SOLAR = 1
+  static readonly HEAT_MODE_SOLAR_PREFERRED = 2
+  static readonly HEAT_MODE_HEAT_PUMP = 3
+  static readonly HEAT_MODE_UNCHANGED = 4
+
+  private readonly ip_address?: string
+  private readonly port?: number
+  private readonly username?: string
+  private readonly password?: string
+
+  constructor(settings: ControllerOptions) {
+    this.ip_address = settings.ip_address
+    this.port = settings.port
+    this.username = settings.username
+    this.password = settings.password
   }
 
-  async getPoolConfig() {
+  async getPoolConfig(): Promise<PoolConfig> {
     const connection = await this._getConnection()
     try {
       await this._login(connection)
@@ -35,7 +54,7 @@ class Controller {
     }
   }
 
-  async getPoolStatus() {
+  async getPoolStatus(): Promise<PoolStatus> {
     const connection = await this._getConnection()
     try {
       await this._login(connection)
@@ -45,7 +64,7 @@ class Controller {
     }
   }
 
-  async setCircuitState(circuitId, circuitState) {
+  async setCircuitState(circuitId: number, circuitState: boolean): Promise<void> {
     const connection = await this._getConnection()
     try {
       await this._login(connection)
@@ -55,7 +74,7 @@ class Controller {
     }
   }
 
-  async setHeatPoint(bodyType, heatPoint) {
+  async setHeatPoint(bodyType: number, heatPoint: number): Promise<void> {
     const connection = await this._getConnection()
     try {
       await this._login(connection)
@@ -65,7 +84,7 @@ class Controller {
     }
   }
 
-  async setHeatMode(bodyType, heatMode) {
+  async setHeatMode(bodyType: number, heatMode: number): Promise<void> {
     const connection = await this._getConnection()
     try {
       await this._login(connection)
@@ -75,16 +94,16 @@ class Controller {
     }
   }
 
-  async _getPoolConfig(connection) {
+  async _getPoolConfig(connection): Promise<PoolConfig> {
     var softwareVersion = ''
     return new Promise(function(resolve, reject) {
       connection
         .once('version', function(version) {
           softwareVersion = version.version
-          this.getControllerConfig()
+          connection.getControllerConfig()
         })
         .once('controllerConfig', function(poolConfig) {
-          resolve(new Config(connection.gatewayName, softwareVersion, poolConfig))
+          resolve(new PoolConfig(connection.gatewayName, softwareVersion, poolConfig))
         })
         .on('error', function(err) {
           reject(err)
@@ -93,11 +112,11 @@ class Controller {
     })
   }
 
-  async _setCircuitState(connection, circuitId, circuitState) {
+  async _setCircuitState(connection, circuitId: number, circuitState: boolean): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('circuitStateChanged', function() {
-          resolve(true)
+          resolve()
         })
         .once('badParameter', function() {
           reject(new ControllerError('bad parameter passed to set command'))
@@ -105,15 +124,15 @@ class Controller {
         .on('error', function(err) {
           reject(err)
         })
-      connection.setCircuitState(0, circuitId, circuitState)
+      connection.setCircuitState(0, circuitId, circuitState ? 1 : 0)
     })
   }
 
-  async _setHeatPoint(connection, bodyType, heatPoint) {
+  async _setHeatPoint(connection, bodyType: number, heatPoint: number): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('setPointChanged', function() {
-          resolve(true)
+          resolve()
         })
         .once('badParameter', function() {
           reject(new ControllerError('bad parameter passed to set command'))
@@ -125,11 +144,11 @@ class Controller {
     })
   }
 
-  async _setHeatMode(connection, bodyType, heatMode) {
+  async _setHeatMode(connection, bodyType: number, heatMode: number): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('heatModeChanged', function() {
-          resolve(true)
+          resolve()
         })
         .once('badParameter', function() {
           reject(new ControllerError('bad parameter passed to set command'))
@@ -141,11 +160,11 @@ class Controller {
     })
   }
 
-  async _getPoolStatus(connection) {
+  async _getPoolStatus(connection): Promise<PoolStatus> {
     return new Promise(function(resolve, reject) {
       connection
         .once('poolStatus', function(status) {
-          resolve(new Status(status))
+          resolve(new PoolStatus(status))
         })
         .on('error', function(err) {
           reject(err)
@@ -154,7 +173,7 @@ class Controller {
     })
   }
 
-  async _login(connection) {
+  async _login(connection): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('loggedIn', function() {
@@ -170,10 +189,10 @@ class Controller {
     })
   }
 
-  async _getConnection() {
-    if (this.config.ip_address) {
+  async _getConnection(): Promise<ScreenLogic.UnitConnection> {
+    if (this.ip_address) {
       return this._getConnectionByIPAddress()
-    } else if (this.config.username && this.config.password) {
+    } else if (this.username && this.password) {
       return this._getConnectionByRemoteLogin()
     } else {
       return this._getConnectionByBroadcast()
@@ -181,7 +200,7 @@ class Controller {
   }
 
   /** get a connection by udp broadcast */
-  async _getConnectionByBroadcast() {
+  async _getConnectionByBroadcast(): Promise<ScreenLogic.UnitConnection> {
     return new Promise(function(resolve, reject) {
       let finder = new ScreenLogic.FindUnits()
       finder
@@ -199,34 +218,30 @@ class Controller {
   }
 
   /** get a connection by IP address */
-  async _getConnectionByIPAddress() {
+  async _getConnectionByIPAddress(): Promise<ScreenLogic.UnitConnection> {
     const that = this
     return new Promise(function(resolve, _reject) {
       const connection = new ScreenLogic.UnitConnection(
-        that.config.port || 80,
-        that.config.ip_address,
-        that.config['password']
+        that.port || 80,
+        that.ip_address,
+        that.password,
       )
-      connection.gatewayName = that.config['username'] || 'Pentair: XX-XX-XX'
+      connection.gatewayName = that.username ?? 'Pentair: XX-XX-XX'
       resolve(connection)
     })
   }
 
   /** find a unit by remote login */
-  async _getConnectionByRemoteLogin() {
+  async _getConnectionByRemoteLogin(): Promise<ScreenLogic.UnitConnection> {
     const that = this
     return new Promise(function(resolve, reject) {
-      var remote = new ScreenLogic.RemoteLogin(that.config.username)
+      var remote = new ScreenLogic.RemoteLogin(that.username)
       remote
         .on('gatewayFound', function(unit) {
           remote.close()
           if (unit && unit.gatewayFound) {
-            const connection = new ScreenLogic.UnitConnection(
-              unit.port,
-              unit.ipAddr,
-              that.config.password
-            )
-            connection.gatewayName = that.config.username
+            const connection = new ScreenLogic.UnitConnection(unit.port, unit.ipAddr, that.password)
+            connection.gatewayName = that.username
             resolve(connection)
           } else {
             reject(new ControllerError('no remote unit found'))
@@ -240,71 +255,92 @@ class Controller {
   }
 }
 
-class ControllerError extends Error {}
+export class ControllerError extends Error {}
 
-class Config {
-  constructor(gatewayName, softwareVersion, config) {
+export class PoolCircuit {
+  constructor(public readonly id: number, public readonly name: string) {}
+}
+
+export class PoolConfig {
+  public readonly gatewayName: string
+  public readonly deviceId: string
+
+  public readonly softwareVersion: string
+  public readonly isCelsius: boolean
+  public readonly poolMinSetPoint: number
+  public readonly poolMaxSetPoint: number
+  public readonly spaMinSetPoint: number
+  public readonly spaMaxSetPoint: number
+  public readonly hasSpa: boolean
+  public readonly hasPool: boolean
+  public circuits: PoolCircuit[] = []
+
+  constructor(gatewayName: string, softwareVersion: string, config: any) {
     this.gatewayName = gatewayName
+    this.deviceId = gatewayName.replace('Pentair: ', '')
+
     this.softwareVersion = softwareVersion
     this.isCelsius = config.degC
-    this.poolMinSetPoint = config.minSetPoint[0]
-    this.poolMaxSetPoint = config.maxSetPoint[0]
-    this.spaMinSetPoint = config.minSetPoint[1]
-    this.spaMaxSetPoint = config.maxSetPoint[1]
+    this.poolMinSetPoint = config.minSetPoint[0] ?? 0
+    this.poolMaxSetPoint = config.maxSetPoint[0] ?? 0
+    this.spaMinSetPoint = config.minSetPoint[1] ?? 0
+    this.spaMaxSetPoint = config.maxSetPoint[1] ?? 0
     this.hasSpa = false
     this.hasPool = false
     this.circuits = []
     for (const circuit of config.bodyArray) {
-      this.circuits.push({
-        id: circuit.circuitId,
-        name: circuit.name,
-        state: 0 // this gets updated via pool status
-      })
-      if (circuit.circuitId == POOL_CIRCUIT_ID) {
+      let poolCircuit = new PoolCircuit(circuit.circuitId, circuit.name)
+      this.circuits.push(poolCircuit)
+      if (poolCircuit.id == Controller.POOL_CIRCUIT_ID) {
         this.hasPool = true
-      } else if (circuit.circuitId == SPA_CIRCUIT_ID) {
+      } else if (poolCircuit.id == Controller.SPA_CIRCUIT_ID) {
         this.hasSpa = true
       }
     }
   }
 }
 
-class Status {
-  constructor(status) {
+export class PoolStatus {
+  public readonly circuitState = new Map<number, number>()
+
+  public readonly hasPool: boolean
+  public readonly poolTemperature: number
+  public readonly poolSetPoint: number
+  public readonly isPoolActive: boolean
+  public readonly isPoolHeating: boolean
+  public readonly poolHeatMode: number
+
+  public readonly hasSpa: boolean
+  public readonly spaTemperature: number
+  public readonly spaSetPoint: number
+  public readonly isSpaActive: boolean
+  public readonly isSpaHeating: boolean
+  public readonly spaHeatMode: number
+
+  public readonly airTemperature: number
+
+  constructor(status: any) {
     // save circuit state
     this.circuitState = new Map()
     for (const circuit of status.circuitArray) {
       this.circuitState.set(circuit.id, circuit.state)
     }
 
-    this.hasPool = this.circuitState.get(POOL_CIRCUIT_ID) !== undefined
-    this.hasSpa = this.circuitState.get(SPA_CIRCUIT_ID) !== undefined
+    this.hasPool = this.circuitState.get(Controller.POOL_CIRCUIT_ID) !== undefined
+    this.hasSpa = this.circuitState.get(Controller.SPA_CIRCUIT_ID) !== undefined
 
     this.poolTemperature = status.currentTemp[0]
     this.poolSetPoint = status.setPoint[0]
     this.isPoolActive = this.hasPool && status.isPoolActive()
-    this.poolIsHeating = this.hasPool && status.heatStatus[0] != 0
+    this.isPoolHeating = this.hasPool && status.heatStatus[0] != 0
     this.poolHeatMode = status.heatMode[0]
 
     this.spaTemperature = status.currentTemp[1]
     this.spaSetPoint = status.setPoint[1]
     this.isSpaActive = this.hasSpa && status.isSpaActive()
-    this.spaIsHeating = this.hasSpa && status.heatStatus[1] != 0
+    this.isSpaHeating = this.hasSpa && status.heatStatus[1] != 0
     this.spaHeatMode = status.heatMode[1]
 
     this.airTemperature = status.airTemp
   }
-}
-
-module.exports = {
-  Controller,
-  Config,
-  Status,
-  ControllerError,
-
-  HEAT_MODE_OFF: 0,
-  HEAT_MODE_SOLAR: 1,
-  HEAT_MODE_SOLAR_PREFERRED: 2,
-  HEAT_MODE_HEAT_PUMP: 3,
-  HEAT_MODE_UNCHANGED: 4
 }
