@@ -16,7 +16,9 @@ import { ThermostatAccessory, ThermostatAccessoryContext } from './thermostatAcc
 import { Controller, PoolConfig, PoolStatus } from './controller'
 
 export interface AccessoryAdaptor<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   generateUUID(platform: ScreenLogicPlatform, context: Record<string, any>): string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sameContext(a: Record<string, any>, b: Record<string, any>): boolean
   factory(platform: ScreenLogicPlatform, accessory: PlatformAccessory): T
 }
@@ -113,7 +115,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
 
   setupDiscoveredAccessories(poolConfig: PoolConfig) {
     // this is used to track active accessories uuids
-    let activeAccessories = new Set<string>()
+    const activeAccessories = new Set<string>()
 
     // make pool temperature sensor if needed
     if (poolConfig.hasPool && !this.config.hidePoolTemperatureSensor) {
@@ -207,6 +209,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     this.restoredAccessories.push(accessory)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configureAccessoryType<T>(adaptor: AccessoryAdaptor<T>, context: Record<string, any>): T {
     // generate a unique id for this shade based on context
     const uuid = adaptor.generateUUID(this, context)
@@ -375,7 +378,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
       return
     }
     // need to convert from Celsius to what pool is conifigured for
-    var heatPoint = this.poolConfig.isCelsius ? temperature : Math.round(temperature * 1.8 + 32)
+    const heatPoint = this.poolConfig.isCelsius ? temperature : Math.round(temperature * 1.8 + 32)
     return this.controller.setHeatPoint(context.bodyType, heatPoint)
   }
 
