@@ -94,7 +94,7 @@ export class Controller {
     }
   }
 
-  async _getPoolConfig(connection): Promise<PoolConfig> {
+  async _getPoolConfig(connection: ScreenLogic.UnitConnection): Promise<PoolConfig> {
     var softwareVersion = ''
     return new Promise(function(resolve, reject) {
       connection
@@ -112,7 +112,11 @@ export class Controller {
     })
   }
 
-  async _setCircuitState(connection, circuitId: number, circuitState: boolean): Promise<void> {
+  async _setCircuitState(
+    connection: ScreenLogic.UnitConnection,
+    circuitId: number,
+    circuitState: boolean,
+  ): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('circuitStateChanged', function() {
@@ -128,7 +132,11 @@ export class Controller {
     })
   }
 
-  async _setHeatPoint(connection, bodyType: number, heatPoint: number): Promise<void> {
+  async _setHeatPoint(
+    connection: ScreenLogic.UnitConnection,
+    bodyType: number,
+    heatPoint: number,
+  ): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('setPointChanged', function() {
@@ -144,7 +152,11 @@ export class Controller {
     })
   }
 
-  async _setHeatMode(connection, bodyType: number, heatMode: number): Promise<void> {
+  async _setHeatMode(
+    connection: ScreenLogic.UnitConnection,
+    bodyType: number,
+    heatMode: number,
+  ): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('heatModeChanged', function() {
@@ -160,7 +172,7 @@ export class Controller {
     })
   }
 
-  async _getPoolStatus(connection): Promise<PoolStatus> {
+  async _getPoolStatus(connection: ScreenLogic.UnitConnection): Promise<PoolStatus> {
     return new Promise(function(resolve, reject) {
       connection
         .once('poolStatus', function(status) {
@@ -173,7 +185,7 @@ export class Controller {
     })
   }
 
-  async _login(connection): Promise<void> {
+  async _login(connection: ScreenLogic.UnitConnection): Promise<void> {
     return new Promise(function(resolve, reject) {
       connection
         .once('loggedIn', function() {

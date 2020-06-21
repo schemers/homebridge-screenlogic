@@ -26,7 +26,6 @@ const SPA_TEMP_NAME = 'Spa'
 const AIR_TEMP_NAME = 'Air'
 const POOL_THERMOSTAT_NAME = 'Pool Heater'
 const SPA_THERMOSTAT_NAME = 'Spa Heater'
-const DEFAULT_STATUS_POLLING_SECONDS = 60
 
 /**npm
  * HomebridgePlatform
@@ -429,7 +428,6 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
   }
 
   applyConfigDefaults(config: PlatformConfig) {
-    // apply defaults
     // config.ip_address
     config.port = config.port ?? 80
     // config.username
