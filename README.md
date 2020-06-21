@@ -8,6 +8,12 @@
 
 <img src="https://i.imgur.com/jFh0EDD.png" width="300"> <img src="https://i.imgur.com/p1RKGVV.png" width="300">
 
+## Requirements
+
+This plugin was recently rewritten in Typescript to use the latest capabilities of Homebridge 1.x, so it requires at a minimum:
+
+1. Homebridge >= 1.1.1
+2. Node >= 10.17.0
 
 ## Installation
 
