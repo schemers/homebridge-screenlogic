@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - add `hideAirTemperatureSensor` config that hides the air temperature sensor. Default value is `false`.
 
+- don’t use status faults to indicate polling error
+
 ## V2.0.0 - 2020-6-21 (MAJOR RELEASE)
 
 ### Added

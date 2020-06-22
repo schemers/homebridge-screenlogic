@@ -309,12 +309,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  _updateAccessories(status?: PoolStatus, err?: Error) {
-    const fault = err ? true : false
-    this.airTempAccessory?.updateStatusFault(fault)
-    this.poolTempAccessory?.updateStatusFault(fault)
-    this.spaTempAccessory?.updateStatusFault(fault)
-
+  _updateAccessories(status?: PoolStatus, _err?: Error) {
     if (status) {
       this.airTempAccessory?.updateCurrentTemperature(
         this.normalizeTemperature(status.airTemperature),

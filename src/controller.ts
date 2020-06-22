@@ -231,7 +231,6 @@ export class Controller {
 
   /** get a connection by IP address */
   async _getConnectionByIPAddress(): Promise<ScreenLogic.UnitConnection> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return new Promise((resolve, _reject) => {
       const connection = new ScreenLogic.UnitConnection(
         this.port || 80,

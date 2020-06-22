@@ -66,9 +66,4 @@ export class TemperatureAccessory {
     this.platform.log.debug('updateStatusActive:', active, this.context)
     this.service.updateCharacteristic(this.platform.Characteristic.StatusActive, active)
   }
-
-  public updateStatusFault(fault: boolean) {
-    this.platform.log.debug('updateStatusFault:', fault, this.context)
-    this.service.updateCharacteristic(this.platform.Characteristic.StatusFault, fault)
-  }
 }
