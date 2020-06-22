@@ -135,11 +135,14 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
       activeAccessories.add(this.spaTempAccessory.UUID)
     }
 
-    this.airTempAccessory = this.configureAccessoryType(TemperatureAccessory.makeAdaptor(), {
-      displayName: AIR_TEMP_NAME,
-      type: AIR_TEMP_NAME,
-    } as TemperatureAccessoryContext)
-    activeAccessories.add(this.airTempAccessory.UUID)
+    // make air temperature sensor if needed
+    if (!this.config.hideAirTemperatureSensor) {
+      this.airTempAccessory = this.configureAccessoryType(TemperatureAccessory.makeAdaptor(), {
+        displayName: AIR_TEMP_NAME,
+        type: AIR_TEMP_NAME,
+      } as TemperatureAccessoryContext)
+      activeAccessories.add(this.airTempAccessory.UUID)
+    }
 
     // make pool thermostat if needed
     if (poolConfig.hasPool && !this.config.hidePoolThermostat) {
@@ -436,6 +439,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     // config.username
     // config.password
     // config.hidden_circuits
+    config.hideAirTemperatureSensor = config.hideAirTemperatureSensor ?? false
     config.hidePoolTemperatureSensor = config.hidePoolTemperatureSensor ?? false
     config.hideSpaTemperatureSensor = config.hideSpaTemperatureSensor ?? false
     config.hidePoolThermostat = config.hidePoolThermostat ?? false
