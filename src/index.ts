@@ -7,5 +7,5 @@ import { ScreenLogicPlatform } from './platform'
  * This method registers the platform with Homebridge
  */
 export = (api: API) => {
-  api.registerPlatform(PLATFORM_NAME, ScreenLogicPlatform)
+  api.registerPlatform("homebridge-screenlogic", PLATFORM_NAME, ScreenLogicPlatform)
 }
