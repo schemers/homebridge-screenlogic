@@ -12,7 +12,7 @@
 
 This plugin was recently rewritten in Typescript to use the latest capabilities of Homebridge 1.x, so it requires at a minimum:
 
-1. Homebridge >= 1.1.1
+1. Homebridge >= 1.0.0
 2. Node >= 10.17.0
 
 ## Installation
