@@ -55,6 +55,9 @@ export class CircuitAccessory {
 
     // register handlers for the On Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.On).on('set', this.setOn.bind(this))
+
+    // trigger refresh if needed when HomeKit asks for this value
+    this.platform.triggersRefreshIfNeded(this.service, this.platform.Characteristic.On)
   }
 
   public get UUID(): string {

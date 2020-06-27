@@ -83,6 +83,18 @@ export class ThermostatAccessory {
     })
 
     this.service.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits).setValue(1)
+
+    // trigger refresh if needed when HomeKit asks for this value
+    this.platform.triggersRefreshIfNeded(
+      this.service,
+      this.platform.Characteristic.CurrentTemperature,
+    )
+
+    // trigger refresh if needed when HomeKit asks for this value
+    this.platform.triggersRefreshIfNeded(
+      this.service,
+      this.platform.Characteristic.TargetTemperature,
+    )
   }
 
   public get UUID(): string {

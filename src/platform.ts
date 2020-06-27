@@ -5,7 +5,9 @@ import {
   PlatformAccessory,
   PlatformConfig,
   Service,
+  WithUUID,
   Characteristic,
+  CharacteristicGetCallback,
 } from 'homebridge'
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings'
@@ -14,6 +16,8 @@ import { CircuitAccessory, CircuitAccessoryContext } from './circuitAccessory'
 import { ThermostatAccessory, ThermostatAccessoryContext } from './thermostatAccessory'
 
 import { Controller, PoolConfig, PoolStatus } from './controller'
+
+type CharacteristicType = WithUUID<{ new (): Characteristic }>
 
 export interface AccessoryAdaptor<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,8 +51,8 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
   // fetched config
   private poolConfig?: PoolConfig
 
-  // set if we have an outstanding refresh
-  private pendingRefreshPromise?: Promise<null>
+  // the time (from Date.now()) when we last initiated or did a refresh
+  private lastRefreshTime = 0
 
   private poolTempAccessory?: TemperatureAccessory
   private spaTempAccessory?: TemperatureAccessory
@@ -87,7 +91,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     })
   }
 
-  discoverDevices(retryAttempt: number) {
+  private discoverDevices(retryAttempt: number) {
     // test
     this.log.info('discoverDevices')
 
@@ -113,7 +117,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
       })
   }
 
-  setupDiscoveredAccessories(poolConfig: PoolConfig) {
+  private setupDiscoveredAccessories(poolConfig: PoolConfig) {
     // this is used to track active accessories uuids
     const activeAccessories = new Set<string>()
 
@@ -198,14 +202,14 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
 
     // start polling for status
-    this._pollForStatus(0)
+    this.pollForStatus(0)
   }
 
   /**
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to setup event handlers for characteristics and update respective values.
    */
-  configureAccessory(accessory: PlatformAccessory) {
+  public configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName)
 
     // add the restored accessory to the accessories cache so we can track if it has already been registered
@@ -213,7 +217,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  configureAccessoryType<T>(adaptor: AccessoryAdaptor<T>, context: Record<string, any>): T {
+  private configureAccessoryType<T>(adaptor: AccessoryAdaptor<T>, context: Record<string, any>): T {
     // generate a unique id for this shade based on context
     const uuid = adaptor.generateUUID(this, context)
 
@@ -255,61 +259,39 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
   }
 
   /** start polling process with truncated exponential backoff: https://cloud.google.com/storage/docs/exponential-backoff */
-  _pollForStatus(retryAttempt: number) {
+  private pollForStatus(retryAttempt: number) {
     const pollingInterval = this.config.statusPollingSeconds
 
-    this._refreshAccessoryValues()
+    this.refreshStatus()
       .then(() => {
         // on success, start another timeout at normal pollingInterval
         this.log.debug('_pollForStatus success, retryAttempt:', retryAttempt)
-        setTimeout(() => this._pollForStatus(0), pollingInterval * 1000)
+        setTimeout(() => this.pollForStatus(0), pollingInterval * 1000)
       })
       .catch(err => {
         // on error, start another timeout with backoff
         const timeout = this.backoff(retryAttempt, pollingInterval)
         this.log.error('_pollForStatus retryAttempt:', retryAttempt, 'timeout:', timeout, err)
-        setTimeout(() => this._pollForStatus(retryAttempt + 1), timeout * 1000)
+        setTimeout(() => this.pollForStatus(retryAttempt + 1), timeout * 1000)
       })
   }
 
-  // refresh all accessories
-  async _refreshAccessoryValues() {
-    // if there already is a pending promise, just return it
-    if (this.pendingRefreshPromise) {
-      this.log.debug('re-using existing pendingRefreshPromise')
-    } else {
-      this.log.debug('creating new pendingRefreshPromise')
-      this.pendingRefreshPromise = this._refreshStatus()
-      this.pendingRefreshPromise
-        // this catch is needed since we have a finally,
-        // without the catch we'd get an unhandled promise rejection error
-        .catch(err => {
-          // log at debug level since we are logging at error in another location
-          this.log.debug('_refreshAccessoryValues', err)
-        })
-        .finally(() => {
-          this.log.debug('clearing pendingRefreshPromise')
-          this.pendingRefreshPromise = undefined
-        })
-    }
-    return this.pendingRefreshPromise
-  }
-
   /** gets status,  updates accessories, and resolves */
-  async _refreshStatus() {
+  private async refreshStatus() {
     try {
+      this.lastRefreshTime = Date.now()
       const poolStatus = await this.controller.getPoolStatus()
       this.log.debug('connected:', this.poolConfig?.deviceId, '(getStatus)')
       // update all values
-      this._updateAccessories(poolStatus, undefined)
+      this.updateAccessories(poolStatus, undefined)
       return null
     } catch (err) {
-      this._updateAccessories(undefined, err)
+      this.updateAccessories(undefined, err)
       throw err
     }
   }
 
-  _updateAccessories(status?: PoolStatus, _err?: Error) {
+  private updateAccessories(status?: PoolStatus, _err?: Error) {
     if (status) {
       this.airTempAccessory?.updateCurrentTemperature(
         this.normalizeTemperature(status.airTemperature),
@@ -370,7 +352,34 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  async setTargetTemperature(context: ThermostatAccessoryContext, temperature: number) {
+  /** refresh if cached values are "stale" */
+  private refreshIfNeeded(): boolean {
+    const now = Date.now()
+    if (now - this.lastRefreshTime > 15 * 1000) {
+      // set now, so we don't trigger multiple...
+      this.lastRefreshTime = now
+      this.refreshStatus().catch(err => {
+        this.log.error('refreshIfNeeded', err)
+      })
+      return true
+    } else {
+      return false
+    }
+  }
+
+  /** convenience function to add an `on('get')` handler which refreshes accessory values if needed  */
+  public triggersRefreshIfNeded(service: Service, type: CharacteristicType) {
+    const characteristic = service.getCharacteristic(type)
+    characteristic.on('get', (callback: CharacteristicGetCallback) => {
+      // just return current cached value, and refresh if needed
+      callback(null, characteristic.value)
+      if (this.refreshIfNeeded()) {
+        this.log.debug('triggered refresh on get', service.displayName, characteristic.displayName)
+      }
+    })
+  }
+
+  public async setTargetTemperature(context: ThermostatAccessoryContext, temperature: number) {
     if (this.poolConfig === undefined) {
       this.log.warn('setTargetTemperature failed: poolConfig is undefined')
       return
@@ -380,18 +389,18 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     return this.controller.setHeatPoint(context.bodyType, heatPoint)
   }
 
-  async setTargetHeatingCoolingState(context: ThermostatAccessoryContext, state: number) {
+  public async setTargetHeatingCoolingState(context: ThermostatAccessoryContext, state: number) {
     return this.controller.setHeatMode(
       context.bodyType,
       this.mapTargetHeatingCoolingStateToHeatMode(state),
     )
   }
 
-  async setCircuitState(context: CircuitAccessoryContext, state: boolean) {
+  public async setCircuitState(context: CircuitAccessoryContext, state: boolean) {
     return this.controller.setCircuitState(context.id, state)
   }
 
-  generateUUID(accessorySalt: string) {
+  public generateUUID(accessorySalt: string) {
     if (this.poolConfig !== undefined) {
       return this.api.hap.uuid.generate(this.poolConfig.deviceId + ':' + accessorySalt)
     } else {
@@ -400,12 +409,12 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  backoff(retryAttempt: number, maxTime: number): number {
+  private backoff(retryAttempt: number, maxTime: number): number {
     retryAttempt = Math.max(retryAttempt, 1)
     return Math.min(Math.pow(retryAttempt - 1, 2) + Math.random(), maxTime)
   }
 
-  accessoryInfo(): {
+  public accessoryInfo(): {
     manufacturer: string
     model: string
     serialNumber: string
@@ -428,7 +437,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  applyConfigDefaults(config: PlatformConfig) {
+  private applyConfigDefaults(config: PlatformConfig) {
     // config.ip_address
     config.port = config.port ?? 80
     // config.username
