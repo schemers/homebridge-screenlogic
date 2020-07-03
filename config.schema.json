@@ -82,5 +82,31 @@
         "description": "Status (such as pool on, lights, temperatures, etc) is fetched on demand as needed, and is also polled for use in automations. By default this is done every 60 seconds."
       }
     }
-  }
+  },
+  "layout": [
+    {
+      "type": "flex",
+      "xtitle": "Config",
+      "flex-flow": "row wrap",
+      "items": ["ip_address", "port", "username", "password"]
+    },
+    {
+      "type": "fieldset",
+      "title": "Temperature Sensors",
+      "expandable": true,
+      "items": ["hidePoolTemperatureSensor", "hideSpaTemperatureSensor", "hideAirTemperatureSensor"]
+    },
+    {
+      "type": "fieldset",
+      "title": "Thermostats",
+      "expandable": true,
+      "items": ["hidePoolThermostat", "hideSpaThermostat"]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced",
+      "expandable": true,
+      "items": ["hidden_circuits", "statusPollingSeconds"]
+    }
+  ]
 }
