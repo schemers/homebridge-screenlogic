@@ -74,6 +74,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     this.applyConfigDefaults(config)
 
     this.controller = new Controller({
+      log: this.log,
       ip_address: this.config.ip_address,
       port: this.config.port,
       username: this.config.username,

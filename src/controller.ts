@@ -1,6 +1,8 @@
 import ScreenLogic from 'node-screenlogic'
+import { Logger } from 'homebridge'
 
 interface ControllerOptions {
+  log: Logger
   ip_address?: string
   port?: number
   username?: string
@@ -32,12 +34,14 @@ export class Controller {
   static readonly HEAT_MODE_HEAT_PUMP = 3
   static readonly HEAT_MODE_UNCHANGED = 4
 
+  private readonly log: Logger
   private readonly ip_address?: string
   private readonly port?: number
   private readonly username?: string
   private readonly password?: string
 
   constructor(settings: ControllerOptions) {
+    this.log = settings.log
     this.ip_address = settings.ip_address
     this.port = settings.port
     this.username = settings.username
@@ -103,6 +107,7 @@ export class Controller {
           connection.getControllerConfig()
         })
         .once('controllerConfig', poolConfig => {
+          this.log.debug('controllerConfig', poolConfig)
           resolve(new PoolConfig(connection.gatewayName, softwareVersion, poolConfig))
         })
         .on('error', err => {
@@ -176,6 +181,7 @@ export class Controller {
     return new Promise((resolve, reject) => {
       connection
         .once('poolStatus', status => {
+          this.log.debug('poolStatus', status)
           resolve(new PoolStatus(status))
         })
         .on('error', err => {
