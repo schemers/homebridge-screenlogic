@@ -31,7 +31,7 @@ Configuration samples (edit `~/.homebridge/config.json`):
 
 This performs a UDP broadcast on 255.255.255.255, port 1444, so ensure your network supports UDP broadcasts and the device is on the same subnet.
 
-```
+```json
 "platforms": [
         {
             "platform": "ScreenLogic"
@@ -43,7 +43,7 @@ This performs a UDP broadcast on 255.255.255.255, port 1444, so ensure your netw
 
 Use this when you know the local static IP address.
 
-```
+```json
 "platforms": [
         {
             "platform": "ScreenLogic",
@@ -59,7 +59,7 @@ Use this when you know the local static IP address.
 
 Use this to go through Pentair servers.
 
-```
+```json
 "platforms": [
         {
             "platform": "ScreenLogic",
@@ -93,16 +93,16 @@ Use this to go through Pentair servers.
 
 ```json
 {
-  "hidden_circuits": "Fountains,Floor Cleaner,Aux 6",
+  "platform": "ScreenLogic",
   "hidePoolTemperatureSensor": false,
-  "hideSpaTemperatureSensor": false,
-  "hideAirTemperatureSensor": false,
+  "hideSpaTemperatureSensor": true,
+  "hideAirTemperatureSensor": true,
   "hidePoolThermostat": false,
   "hideSpaThermostat": false,
   "statusPollingSeconds": 60,
   "createLightColorSwitches": true,
   "disabledLightColors": ["Pool Mode Party", "Pool Mode Romance"],
-  "platform": "ScreenLogic"
+  "hidden_circuits": "Fountains,Floor Cleaner,Aux 6"
 }
 ```
 
