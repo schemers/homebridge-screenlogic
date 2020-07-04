@@ -85,9 +85,9 @@ Use this to go through Pentair servers.
 
 - `"statusPollingSeconds"` time in seconds to poll for pool statu. Default is 60 seconds.
 
-- `createLightColorSwitches` will create a "Pool Lights" accessory that contains switches for turing on light modes/colors.
+- `createLightColorSwitches` will create a "Pool Lights" accessory that contains switches for turing on light modes/colors. Default is `false`.
 
-- `disabledLightColors` an array of strings with the names of light mode/colors you want to _disable_
+- `disabledLightColors` an array of strings with the names of light mode/colors you want to _disable_. Default is an empty array.
 
 ## Sample config
 
