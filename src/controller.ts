@@ -88,6 +88,16 @@ export class Controller {
     }
   }
 
+  async sendLightCommand(cmd: number): Promise<void> {
+    const connection = await this._getConnection()
+    try {
+      await this._login(connection)
+      return await this._sendLightCommand(connection, cmd)
+    } finally {
+      connection.close()
+    }
+  }
+
   async setHeatMode(bodyType: number, heatMode: number): Promise<void> {
     const connection = await this._getConnection()
     try {
@@ -107,7 +117,7 @@ export class Controller {
           connection.getControllerConfig()
         })
         .once('controllerConfig', poolConfig => {
-          this.log.debug('controllerConfig', poolConfig)
+          //this.log.debug('controllerConfig', poolConfig)
           resolve(new PoolConfig(connection.gatewayName, softwareVersion, poolConfig))
         })
         .on('error', err => {
@@ -134,6 +144,22 @@ export class Controller {
           reject(err)
         })
       connection.setCircuitState(0, circuitId, circuitState ? 1 : 0)
+    })
+  }
+
+  async _sendLightCommand(connection: ScreenLogic.UnitConnection, cmd: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      connection
+        .once('sentLightCommand', () => {
+          resolve()
+        })
+        .once('badParameter', () => {
+          reject(new ControllerError('bad parameter passed to send light command'))
+        })
+        .on('error', err => {
+          reject(err)
+        })
+      connection.sendLightCommand(0, cmd)
     })
   }
 
@@ -181,7 +207,7 @@ export class Controller {
     return new Promise((resolve, reject) => {
       connection
         .once('poolStatus', status => {
-          this.log.debug('poolStatus', status)
+          //this.log.debug('poolStatus', status)
           resolve(new PoolStatus(status))
         })
         .on('error', err => {

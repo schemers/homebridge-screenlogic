@@ -14,6 +14,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings'
 import { TemperatureAccessory, TemperatureAccessoryContext } from './temperatureAccessory'
 import { CircuitAccessory, CircuitAccessoryContext } from './circuitAccessory'
 import { ThermostatAccessory, ThermostatAccessoryContext } from './thermostatAccessory'
+import { SetColorAccessory, SetColorAccessoryContext } from './setColorAccessory'
 
 import { Controller, PoolConfig, PoolStatus } from './controller'
 
@@ -188,6 +189,14 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
         id: circuit.id,
       } as CircuitAccessoryContext)
       this.circuitAccessories.push(accessory)
+      activeAccessories.add(accessory.UUID)
+    }
+
+    if (this.config.createLightColorSwitches) {
+      const accessory = this.configureAccessoryType(SetColorAccessory.makeAdaptor(), {
+        displayName: 'Light Colors',
+        id: 1,
+      } as CircuitAccessoryContext)
       activeAccessories.add(accessory.UUID)
     }
 
@@ -369,7 +378,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
   }
 
   /** convenience function to add an `on('get')` handler which refreshes accessory values if needed  */
-  public triggersRefreshIfNeded(service: Service, type: CharacteristicType) {
+  public triggersRefreshIfNeded(service: Service, type: CharacteristicType): void {
     const characteristic = service.getCharacteristic(type)
     characteristic.on('get', (callback: CharacteristicGetCallback) => {
       // just return current cached value, and refresh if needed
@@ -380,25 +389,46 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     })
   }
 
-  public async setTargetTemperature(context: ThermostatAccessoryContext, temperature: number) {
+  public setTargetTemperature(context: ThermostatAccessoryContext, temperature: number): void {
     if (this.poolConfig === undefined) {
       this.log.warn('setTargetTemperature failed: poolConfig is undefined')
       return
     }
     // need to convert from Celsius to what pool is conifigured for
     const heatPoint = this.poolConfig.isCelsius ? temperature : Math.round(temperature * 1.8 + 32)
-    return this.controller.setHeatPoint(context.bodyType, heatPoint)
+    this.controller.setHeatPoint(context.bodyType, heatPoint).catch(err => {
+      this.log.error('setTargetTemperature', err)
+    })
   }
 
-  public async setTargetHeatingCoolingState(context: ThermostatAccessoryContext, state: number) {
-    return this.controller.setHeatMode(
-      context.bodyType,
-      this.mapTargetHeatingCoolingStateToHeatMode(state),
-    )
+  public setTargetHeatingCoolingState(context: ThermostatAccessoryContext, state: number): void {
+    this.controller
+      .setHeatMode(context.bodyType, this.mapTargetHeatingCoolingStateToHeatMode(state))
+      .catch(err => {
+        this.log.error('setTargetHeatingCoolingState', err)
+      })
   }
 
-  public async setCircuitState(context: CircuitAccessoryContext, state: boolean) {
-    return this.controller.setCircuitState(context.id, state)
+  public setCircuitState(context: CircuitAccessoryContext, state: boolean): void {
+    this.controller.setCircuitState(context.id, state).catch(err => {
+      this.log.error('setCircuitState', err)
+    })
+  }
+
+  public sendLightCommand(_context: SetColorAccessoryContext, cmd: number): void {
+    this.controller
+      .sendLightCommand(cmd)
+      .then(() => {
+        // sending the light command will turn on pool/spa lights, so refresh
+        setTimeout(() => {
+          this.refreshStatus().catch(err => {
+            this.log.error('sendLightCommand refresh', err)
+          })
+        }, 2500)
+      })
+      .catch(err => {
+        this.log.error('sendLightCommand', err)
+      })
   }
 
   public generateUUID(accessorySalt: string) {
@@ -450,6 +480,8 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     config.hidePoolThermostat = config.hidePoolThermostat ?? false
     config.hideSpaThermostat = config.hideSpaThermostat ?? false
     config.statusPollingSeconds = config.statusPollingSeconds ?? 60
+    config.createLightColorSwitches = config.createLightColorSwitches ?? false
+    config.disabledLightColors = config.disabledLightColors ?? []
     this.log.debug('config', this.config)
   }
 

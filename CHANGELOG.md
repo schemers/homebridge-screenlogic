@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- debug log `controllerConfig` and `poolStatus` results from `node-screenlogic`
+- add `createLightColorSwitches` config that creates switches for setting pool light modes/colors. See [README.md](./README.md) for more details
+- add `disabledLightColors` config for disabling light modes/colors that you don't want to create switches for. See [README.md](./README.md) for more details
+
+### Fixed
+
+- add catch handlers for controller promises to log errors
 
 ## V2.0.3 - 2020-6-27
 

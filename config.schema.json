@@ -80,6 +80,35 @@
         "minimum": 1,
         "placeholder": "Get status every __ seconds",
         "description": "Status (such as pool on, lights, temperatures, etc) is fetched on demand as needed, and is also polled for use in automations. By default this is done every 60 seconds."
+      },
+      "createLightColorSwitches": {
+        "title": "Create Switches for Colors",
+        "type": "boolean",
+        "default": false,
+        "description": "Create switches for changing the color of the lights. Turning the switch on will send a command to the pool controller to change to that color, and then the switch will turn off."
+      },
+      "disabledLightColors": {
+        "title": "Disabled Colors",
+        "type": "array",
+        "uniqueItems": true,
+        "description": "Disable any lights you don't want to create switches for. Only applicable if 'Create switches for light colors' is enabled.",
+        "items": {
+          "title": "Mode",
+          "type": "string",
+          "enum": [
+            "Pool Mode Party",
+            "Pool Mode Romance",
+            "Pool Mode Caribbean",
+            "Pool Mode American",
+            "Pool Mode Sunset",
+            "Pool Mode Royal",
+            "Pool Color Blue",
+            "Pool Color Green",
+            "Pool Color Red",
+            "Pool Color White",
+            "Pool Color Purple"
+          ]
+        }
       }
     }
   },
@@ -101,6 +130,12 @@
       "title": "Thermostats",
       "expandable": true,
       "items": ["hidePoolThermostat", "hideSpaThermostat"]
+    },
+    {
+      "type": "fieldset",
+      "title": "Light Colors",
+      "expandable": true,
+      "items": ["createLightColorSwitches", "disabledLightColors"]
     },
     {
       "type": "fieldset",

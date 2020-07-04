@@ -85,6 +85,27 @@ Use this to go through Pentair servers.
 
 - `"statusPollingSeconds"` time in seconds to poll for pool statu. Default is 60 seconds.
 
+- `createLightColorSwitches` will create a "Pool Lights" accessory that contains switches for turing on light modes/colors.
+
+- `disabledLightColors` an array of strings with the names of light mode/colors you want to _disable_
+
+## Sample config
+
+```json
+{
+  "hidden_circuits": "Fountains,Floor Cleaner,Aux 6",
+  "hidePoolTemperatureSensor": false,
+  "hideSpaTemperatureSensor": false,
+  "hideAirTemperatureSensor": false,
+  "hidePoolThermostat": false,
+  "hideSpaThermostat": false,
+  "statusPollingSeconds": 60,
+  "createLightColorSwitches": true,
+  "disabledLightColors": ["Pool Mode Party", "Pool Mode Romance"],
+  "platform": "ScreenLogic"
+}
+```
+
 # Implemented HomeKit Accessory Types
 
 ## Air Temperature
@@ -105,11 +126,15 @@ Use this to go through Pentair servers.
 
 ## Pool Heater
 
-- _Thermostat_ accessory with ambient temperature, mode control (heat/cool/auto/off), and target temperature control
+- _Thermostat_ accessory with ambient temperature, mode control (heat/cool/auto/off), and target temperature control. See also [Note on Pool/Spa Heater](#note-on-poolspa-heater) below.
 
 ## Spa Heater
 
-- _Thermostat_ accessory with ambient temperature, mode control (heat/cool/auto/off), and target temperature control
+- _Thermostat_ accessory with ambient temperature, mode control (heat/cool/auto/off), and target temperature control. See also [Note on Pool/Spa Heater](#note-on-poolspa-heater) below.
+
+## Light Colors
+
+- _Light Colors_ accessory with multiple switches for setting a light mode/color. See also [Note on Light Colors](#note-on-light-colors)
 
 # Note on Pool/Spa Heater
 
@@ -142,3 +167,35 @@ i.e., if you want to heat the spa, you need to do two things:
 This should work well in practice though, as you will generally have a set target temperature and mode, and then just turn the spa on/off without mucking with the thermostat.
 
 This also means that even if the Pool/Spa is turned off and you open the Pool/Spa Heater it mght say "HEATING TO". It will not actually being heating unless the corresponding Pool/Spa switch is turned on.
+
+# Note on Light Colors
+
+The light color commands (for modes and colors) are exposed as switches in HomeKit if you enable `createLightColorSwitches` (it is `false` by default).
+
+## Semantics
+
+Since I don't have the ability to query the current state of which color/mode is active (Screenlogic app doesn't show it either), I implemented the following behavior:
+
+1. light mode/color is turned on (i.e., Pool Mode Sunset)
+1. light command is sent to Screenlogic controller
+1. after a few seconds, the light is turned to give feedback that the command was sent
+1. all pool/spa lights will be turned on (if they aren't already), and set to that mode/color. This is done by the screen logic controller itself.
+
+## Single Tile
+
+Instead of cluttering the room with a bunch of switches, they are all shown in HomeKit as a single accessory called "Light Colors". Tap on the tile to expand, and then turn on the individual switch for the desired mode/color.
+
+If you'd like to show them as separate tiles, you can tap the gear icon at the bottom of the expanded tile (or slide up at the bottom) and then select "Show as Separate Tiles". If you are showing as separate tiles and want to revert back to a single tile, you can select any switch and then select "Show as Single Tile"
+
+## Renaming
+
+While showing the light switches as separate tiles, you can rename them if desired, which will let you pick a different name to use with Siri. After renaming you can then show as a single tile again if you'd like.
+
+## Siri
+
+You can set a mode/color by saying the mode/color name:
+
+- "Hey Siri, turn on pool mode sunset"
+- "Hey Siri, turn on pool color blue"
+
+Which will set the selected mode/color and turn on all the lights if they aren't on.
