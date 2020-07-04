@@ -176,9 +176,9 @@ The light color commands (for modes and colors) are exposed as switches in HomeK
 
 Since I don't have the ability to query the current state of which color/mode is active (Screenlogic app doesn't show it either), I implemented the following behavior:
 
-1. light mode/color is turned on (i.e., Pool Mode Sunset)
+1. light mode/color switch is turned on (i.e., Pool Mode Sunset)
 1. light command is sent to Screenlogic controller
-1. after a few seconds, the light is turned to give feedback that the command was sent
+1. after a few seconds, the same switch is turned off give feedback that the command was sent
 1. all pool/spa lights will be turned on (if they aren't already), and set to that mode/color. This is done by the screen logic controller itself.
 
 ## Single Tile
