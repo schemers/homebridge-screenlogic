@@ -178,7 +178,7 @@ Since I don't have the ability to query the current state of which color/mode is
 
 1. light mode/color switch is turned on (i.e., Pool Mode Sunset)
 1. light command is sent to Screenlogic controller
-1. after a few seconds, the same switch is turned off give feedback that the command was sent
+1. after a few seconds, the same switch is turned off to give feedback that the command was sent
 1. all pool/spa lights will be turned on (if they aren't already), and set to that mode/color. This is done by the screen logic controller itself.
 
 ## Single Tile
