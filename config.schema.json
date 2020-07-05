@@ -115,8 +115,6 @@
   "layout": [
     {
       "type": "flex",
-      "xtitle": "Config",
-      "flex-flow": "row wrap",
       "items": ["ip_address", "port", "username", "password"]
     },
     {
