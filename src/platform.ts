@@ -396,29 +396,51 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
     // need to convert from Celsius to what pool is conifigured for
     const heatPoint = this.poolConfig.isCelsius ? temperature : Math.round(temperature * 1.8 + 32)
-    this.controller.setHeatPoint(context.bodyType, heatPoint).catch(err => {
-      this.log.error('setTargetTemperature', err)
-    })
+    this.controller
+      .setHeatPoint(context.bodyType, heatPoint)
+      .then(() => {
+        this.log.debug(
+          'setTargetTemperature: successfully set target temperature: ',
+          context.bodyType,
+          heatPoint,
+        )
+      })
+      .catch(err => {
+        this.log.error('setTargetTemperature', err)
+      })
   }
 
   public setTargetHeatingCoolingState(context: ThermostatAccessoryContext, state: number): void {
     this.controller
       .setHeatMode(context.bodyType, this.mapTargetHeatingCoolingStateToHeatMode(state))
+      .then(() => {
+        this.log.debug(
+          'setTargetHeatingCoolingState: successfully set target heating/cooling state: ',
+          context.bodyType,
+          state,
+        )
+      })
       .catch(err => {
         this.log.error('setTargetHeatingCoolingState', err)
       })
   }
 
   public setCircuitState(context: CircuitAccessoryContext, state: boolean): void {
-    this.controller.setCircuitState(context.id, state).catch(err => {
-      this.log.error('setCircuitState', err)
-    })
+    this.controller
+      .setCircuitState(context.id, state)
+      .then(() => {
+        this.log.debug('setCircuitState: successfully set circuit state: ', context.id, state)
+      })
+      .catch(err => {
+        this.log.error('setCircuitState', err)
+      })
   }
 
   public sendLightCommand(_context: SetColorAccessoryContext, cmd: number): void {
     this.controller
       .sendLightCommand(cmd)
       .then(() => {
+        this.log.debug('sendLightCommand: successfully sent light command: ', cmd)
         // sending the light command will turn on pool/spa lights, so refresh
         setTimeout(() => {
           this.refreshStatus().catch(err => {

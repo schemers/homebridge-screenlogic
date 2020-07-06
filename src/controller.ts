@@ -117,7 +117,7 @@ export class Controller {
           connection.getControllerConfig()
         })
         .once('controllerConfig', poolConfig => {
-          //this.log.debug('controllerConfig', poolConfig)
+          this.log.debug('controllerConfig', poolConfig)
           resolve(new PoolConfig(connection.gatewayName, softwareVersion, poolConfig))
         })
         .on('error', err => {
