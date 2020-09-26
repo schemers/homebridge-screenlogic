@@ -60,7 +60,7 @@ export class SetColorAccessory {
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessoryInfo.serialNumber)
 
     for (const colorConfig of setColorConfig) {
-      if (!(platform.config.disabledLightColors as [string]).includes(colorConfig.name)) {
+      if (!platform.config.disabledLightColors.includes(colorConfig.name)) {
         this.platform.log.info('adding enabled light color:', colorConfig.name)
 
         // To avoid "Cannot add a Service with the same UUID another Service without also defining a unique 'subtype' property." error,
@@ -88,7 +88,7 @@ export class SetColorAccessory {
 
     const servicesToRemove = this.accessory.services.filter(service => {
       if (service.UUID === this.platform.Service.Switch.UUID) {
-        return (platform.config.disabledLightColors as [string]).includes(service.displayName)
+        return platform.config.disabledLightColors.includes(service.displayName)
       } else {
         return false
       }

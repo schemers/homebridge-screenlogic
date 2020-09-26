@@ -28,6 +28,21 @@ export interface AccessoryAdaptor<T> {
   factory(platform: ScreenLogicPlatform, accessory: PlatformAccessory): T
 }
 
+export interface ScreenLogicPlatformConfig extends PlatformConfig {
+  ip_address?: string
+  port?: number
+  username?: string
+  password?: string
+  hidePoolTemperatureSensor: boolean
+  hideSpaTemperatureSensor: boolean
+  hideAirTemperatureSensor: boolean
+  hidePoolThermostat: boolean
+  hideSpaThermostat: boolean
+  statusPollingSeconds: number
+  createLightColorSwitches: boolean
+  disabledLightColors: [string]
+}
+
 const POOL_TEMP_NAME = 'Pool'
 const SPA_TEMP_NAME = 'Spa'
 const AIR_TEMP_NAME = 'Air'
@@ -49,6 +64,9 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
   // bridge controller to talk to shades
   private controller: Controller
 
+  // configuration
+  public config: ScreenLogicPlatformConfig
+
   // fetched config
   private poolConfig?: PoolConfig
 
@@ -64,22 +82,19 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
 
   private circuitAccessories: CircuitAccessory[] = []
 
-  constructor(
-    public readonly log: Logger,
-    public readonly config: PlatformConfig,
-    public readonly api: API,
-  ) {
+  constructor(public readonly log: Logger, config: PlatformConfig, public readonly api: API) {
     this.log.debug('Finished initializing platform', PLATFORM_NAME)
 
+    this.config = config as ScreenLogicPlatformConfig
     // do this first to make sure we have proper defaults moving forward
     this.applyConfigDefaults(config)
 
     this.controller = new Controller({
       log: this.log,
-      ip_address: this.config.ip_address as string,
-      port: this.config.port as number,
-      username: this.config.username as string,
-      password: this.config.password as string,
+      ip_address: this.config.ip_address,
+      port: this.config.port,
+      username: this.config.username,
+      password: this.config.password,
     })
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -270,7 +285,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
 
   /** start polling process with truncated exponential backoff: https://cloud.google.com/storage/docs/exponential-backoff */
   private pollForStatus(retryAttempt: number) {
-    const pollingInterval = this.config.statusPollingSeconds as number
+    const pollingInterval = this.config.statusPollingSeconds
 
     this.refreshStatus()
       .then(() => {
