@@ -118,7 +118,7 @@ export class SetColorAccessory {
     colorConfig: { name: string; cmd: number },
   ) {
     this.platform.log.debug('setOn:', value, colorConfig)
-    this.platform.sendLightCommand(this.context, value as number)
+    this.platform.sendLightCommand(this.context, colorConfig.cmd as number)
     callback(null, value)
     setTimeout(() => {
       service.updateCharacteristic(this.platform.Characteristic.On, false)
