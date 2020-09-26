@@ -76,10 +76,10 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
 
     this.controller = new Controller({
       log: this.log,
-      ip_address: this.config.ip_address,
-      port: this.config.port,
-      username: this.config.username,
-      password: this.config.password,
+      ip_address: this.config.ip_address as string,
+      port: this.config.port as number,
+      username: this.config.username as string,
+      password: this.config.password as string,
     })
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -176,7 +176,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
     }
 
     // filter out hidden circuits
-    const hiddenNames = this.config.hidden_circuits || ''
+    const hiddenNames = (this.config.hidden_circuits as string) || ''
     const hiddenCircuits = new Set(hiddenNames.split(',').map(item => item.trim()))
 
     poolConfig.circuits = poolConfig.circuits.filter(circuit => {
@@ -270,7 +270,7 @@ export class ScreenLogicPlatform implements DynamicPlatformPlugin {
 
   /** start polling process with truncated exponential backoff: https://cloud.google.com/storage/docs/exponential-backoff */
   private pollForStatus(retryAttempt: number) {
-    const pollingInterval = this.config.statusPollingSeconds
+    const pollingInterval = this.config.statusPollingSeconds as number
 
     this.refreshStatus()
       .then(() => {
