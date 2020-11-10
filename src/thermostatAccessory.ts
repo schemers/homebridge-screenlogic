@@ -1,5 +1,6 @@
 import {
   Service,
+  Formats,
   PlatformAccessory,
   CharacteristicValue,
   CharacteristicSetCallback,
@@ -71,13 +72,13 @@ export class ThermostatAccessory {
       .on('set', this.setTargetHeatingCoolingState.bind(this))
 
     this.service.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
-      format: this.platform.Characteristic.Formats.FLOAT,
+      format: Formats.FLOAT,
       minValue: this.context.minSetPoint,
       maxValue: this.context.maxSetPoint,
     })
 
     this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature).setProps({
-      format: this.platform.Characteristic.Formats.FLOAT,
+      format: Formats.FLOAT,
       minValue: -18,
       maxValue: 60,
     })

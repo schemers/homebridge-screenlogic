@@ -1,4 +1,4 @@
-import { Service, PlatformAccessory } from 'homebridge'
+import { Service, PlatformAccessory, Formats } from 'homebridge'
 
 import { ScreenLogicPlatform, AccessoryAdaptor } from './platform'
 
@@ -47,6 +47,12 @@ export class TemperatureAccessory {
 
     // set the service name, this is what is displayed as the default name on the Home app
     this.service.setCharacteristic(this.platform.Characteristic.Name, this.context.displayName)
+
+    this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature).setProps({
+      format: Formats.FLOAT,
+      minValue: -40,
+      maxValue: 60,
+    })
 
     // trigger refresh if needed when HomeKit asks for this value
     this.platform.triggersRefreshIfNeded(
