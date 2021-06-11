@@ -4,6 +4,10 @@
 ![License](https://img.shields.io/npm/l/homebridge-screenlogic)
 [![Downloads](https://img.shields.io/npm/dm/homebridge-screenlogic.svg)](https://npmjs.org/package/homebridge-screenlogic)
 
+## Note
+
+I no longer have a Screen Logic controller, so I not maintaing/updating this plugin as of 6/11/21. If someone wants to fork and maintain I can update this REAMDE to point to a new repository.
+
 ## Screen Logic plug-in for [Homebridge](https://github.com/nfarina/homebridge) using the [node-screenlogic](https://github.com/parnic/node-screenlogic) library.
 
 <img src="https://user-images.githubusercontent.com/249172/86522408-04f3d980-be12-11ea-8fc2-e85904a8b415.png" width="300"> <img src="https://user-images.githubusercontent.com/249172/86522409-0a512400-be12-11ea-8c9f-4165e9fe76a5.png" width="300">
