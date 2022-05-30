@@ -10,6 +10,9 @@ import ScreenLogic from 'node-screenlogic'
 import { ScreenLogicPlatform, AccessoryAdaptor } from './platform'
 
 const setColorConfig = [
+  { name: 'Pool Color Set', cmd: ScreenLogic.LIGHT_CMD_COLOR_SET },
+  { name: 'Pool Color Sync', cmd: ScreenLogic.LIGHT_CMD_COLOR_SYNC },
+  { name: 'Pool Color Swim', cmd: ScreenLogic.LIGHT_CMD_COLOR_SWIM },
   { name: 'Pool Mode Party', cmd: ScreenLogic.LIGHT_CMD_COLOR_MODE_PARTY },
   { name: 'Pool Mode Romance', cmd: ScreenLogic.LIGHT_CMD_COLOR_MODE_ROMANCE },
   { name: 'Pool Mode Caribbean', cmd: ScreenLogic.LIGHT_CMD_COLOR_MODE_CARIBBEAN },
