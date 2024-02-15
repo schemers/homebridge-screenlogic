@@ -6,4 +6,4 @@ export const PLATFORM_NAME = 'ScreenLogic'
 /**
  * This must match the name of your plugin as defined the package.json
  */
-export const PLUGIN_NAME = 'homebridge-screenlogic'
+export const PLUGIN_NAME = '@csmyrnos/homebridge-screenlogic'

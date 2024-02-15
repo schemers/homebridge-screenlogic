@@ -96,6 +96,9 @@
           "title": "Mode",
           "type": "string",
           "enum": [
+            "Pool Color Set",
+            "Pool Color Sync",
+            "Pool Color Swim",
             "Pool Mode Party",
             "Pool Mode Romance",
             "Pool Mode Caribbean",
